@@ -1,0 +1,55 @@
+#!/bin/zsh
+# build/Peeky.app과 배포용 build/Peeky-<버전>.dmg를 만든다. Xcode 없이 Command Line Tools만으로 빌드한다.
+# Apple 실리콘 Mac 전용이다.
+set -e
+cd "$(dirname "$0")/.."
+
+# PEEKY_DEBUG=1이면 디버그 빌드를 만든다(dmg는 만들지 않음).
+config=release
+[[ -n "$PEEKY_DEBUG" ]] && config=debug
+swift build -c $config --arch arm64
+
+app=build/Peeky.app
+rm -rf "$app"
+mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
+cp .build/arm64-apple-macosx/$config/Peeky "$app/Contents/MacOS/Peeky"
+cp Resources/Info.plist "$app/Contents/Info.plist"
+cp Resources/AppIcon.icns "$app/Contents/Resources/AppIcon.icns"
+
+# scripts/make-signing-cert.sh로 만든 인증서가 있으면 그것으로 서명한다. 다시 빌드해도 권한이 유지된다.
+# 없으면 임시 서명을 하되, 서명 조건을 번들 ID로 지정해서 같은 앱으로 인식되게 한다.
+# 강화 런타임(--options runtime)을 켜서 다른 라이브러리를 끼워 넣지 못하게 한다.
+identity="Peeky Local Signing"
+if security find-identity -p codesigning 2>/dev/null | grep -q "$identity" \
+   || security find-certificate -c "$identity" >/dev/null 2>&1; then
+    codesign --force --sign "$identity" --options runtime "$app"
+else
+    codesign --force --sign - --options runtime -r='designated => identifier "com.eddieee.Peeky"' "$app"
+fi
+
+if [[ $config == debug ]]; then
+    echo "$app (디버그)"
+    exit 0
+fi
+
+# 내려받은 쪽에서 응용 프로그램 폴더로 끌어다 놓을 수 있게 바로가기를 함께 넣는다.
+version=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Resources/Info.plist)
+dmg="build/Peeky-$version.dmg"
+staging=build/dmg
+rm -rf "$staging" "$dmg" "$dmg.sig"
+mkdir -p "$staging"
+cp -R "$app" "$staging/"
+ln -s /Applications "$staging/Applications"
+hdiutil create -quiet -volname Peeky -srcfolder "$staging" -format UDZO "$dmg"
+rm -rf "$staging"
+
+# 앱 안 업데이트가 확인하는 Ed25519 서명. 릴리스에 dmg와 함께 .sig를 올린다.
+# 키가 없으면 .sig를 만들지 않고, 그 릴리스는 앱 안에서 자동 설치되지 않는다.
+if [[ -f "${PEEKY_UPDATE_KEY:-$HOME/.config/peeky/update-signing.key}" ]]; then
+    swift scripts/sign-update.swift sign "$dmg" >/dev/null
+fi
+
+echo "$app"
+echo "$dmg"
+[[ -f "$dmg.sig" ]] && echo "$dmg.sig"
+exit 0

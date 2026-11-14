@@ -1,0 +1,104 @@
+<p align="center">
+  <img src="docs/icon.png" width="96" alt="Peeky 아이콘">
+</p>
+
+<h1 align="center">Peeky</h1>
+
+<p align="center">노치에 가려진 메뉴바 아이콘을 꺼내 보는 macOS 메뉴바 앱<br>Windows 작업 표시줄의 숨김 아이콘처럼, 골라서 모아 보고 화살표로 넘기세요.</p>
+
+<p align="center">
+  <a href="https://github.com/eddieee-git/mac-app-peeky/releases/latest">최신 버전 내려받기</a> ·
+  <a href="#설치">설치</a> ·
+  <a href="#단축키">단축키</a> ·
+  <a href="#자주-묻는-질문">자주 묻는 질문</a> ·
+  <a href="CHANGELOG.md">변경 기록</a> ·
+  <a href="README.en.md">English</a>
+</p>
+
+## 특징
+
+- **가려진 아이콘을 바로 클릭**: 메뉴바 아래로 바가 내려오고, 노치 뒤에 숨은 아이콘도 눌러서 원래 메뉴를 열 수 있어요.
+- **넘겨 보기**: 아이콘이 많으면 **‹ ›** 화살표, 마우스 휠·트랙패드, 키보드 ← → 로 좌우로 넘겨요.
+- **한 줄·두 줄·세 줄**: 바를 여러 줄로 펼쳐서 덜 넘기게 할 수 있어요.
+- **그룹**: 그룹마다 메뉴바에 아이콘이 하나씩 생기고, 누르면 그 그룹에 넣은 항목만 보여요. 예: "업무"와 "시스템"을 따로.
+- **진짜 아이콘 모양**: 화면 기록 권한을 주면 메뉴바에 보이는 그대로의 아이콘을 보여 줘요(없으면 앱 아이콘).
+- **노치에 가려진 것만 보기**: 지금 실제로 가려진 항목만 바에 띄울 수 있어요.
+- **앱 안 업데이트**: 새 버전이 나오면 내려받아 서명을 확인하고 바꿔 넣어요.
+
+## 설치
+
+1. [Releases](https://github.com/eddieee-git/mac-app-peeky/releases/latest)에서 `Peeky-x.y.z.dmg`를 내려받아 열어요.
+2. **Peeky**를 **Applications** 폴더로 끌어다 놓아요.
+3. Peeky를 열어요. Apple 개발자 서명이 없는 앱이라 처음 한 번은 열 수 없다는 경고가 나와요. **완료**를 누른 뒤:
+   - **macOS 15(Sequoia) 이상**: 시스템 설정 → 개인정보 보호 및 보안을 맨 아래까지 내려서 Peeky 옆의 **그래도 열기**를 누르고, 한 번 더 **열기**를 눌러요.
+   - **macOS 14(Sonoma)**: 응용 프로그램 폴더에서 Peeky를 **오른쪽 클릭 → 열기**를 눌러요.
+
+   터미널이 편하면 `xattr -dr com.apple.quarantine /Applications/Peeky.app`을 실행해도 돼요.
+4. 처음 실행하면 설정 창이 떠요. **손쉬운 사용** 옆 **허용하기**를 누르고 목록에서 Peeky를 켜요(필수).
+5. (선택) **화면 기록** 옆 **허용하기** → 목록에서 Peeky 켜기 → **다시 열기**. 실제 아이콘 모양이 보여요.
+
+## 쓰는 방법
+
+1. 메뉴바의 Peeky 아이콘(`‹›`)을 누르거나 **⌃⌥1**을 눌러요. 메뉴바 바로 아래에 바가 열려요.
+2. 바의 아이콘을 누르면 그 앱의 메뉴가 열려요. 오른쪽 클릭은 보조 메뉴를 시도해요.
+3. 설정(⚙︎)의 **항목별 그룹**에서 각 아이콘을 어느 그룹에 보일지 골라요. 「숨김」은 어느 바에도 안 나와요.
+4. 그룹을 더 만들려면 설정 → **그룹** → **＋ 그룹 추가**. 그룹마다 이름과 아이콘 모양을 바꿀 수 있어요.
+
+Peeky 아이콘 자체가 노치에 가려지면 ⌘를 누른 채 오른쪽으로 끌어 옮기세요. 위치는 기억돼요. 가려져 있어도 단축키는 항상 동작해요.
+
+## 단축키
+
+| 키 | 동작 |
+|---|---|
+| ⌃⌥1 ~ ⌃⌥9 | 그룹 1~9의 바 열기/닫기 |
+| ⌃⌥B | 첫 번째 그룹 바 열기/닫기 |
+| ← → | (바가 열려 있을 때) 좌우로 넘기기 |
+| esc | 바 닫기 |
+
+## 설정
+
+| 항목 | 설명 |
+|---|---|
+| 노치에 가려진 항목만 표시 | 지금 노치에 가려졌거나 화면 밖으로 밀려난 항목만 바에 보여요 |
+| 줄 수 | 한 줄 / 두 줄 / 세 줄 |
+| 바 최대 너비 | 이 너비를 넘으면 화살표와 스크롤로 넘겨요 |
+| 로그인 시 실행 | Mac을 켤 때 자동으로 실행 |
+| 새 버전이 나오면 자동으로 설치 | 하루 한 번 GitHub에서 확인하고 새 버전을 설치해요(기본 켬) |
+
+## 자주 묻는 질문
+
+**권한을 켰는데 설정 창이 계속 주황색이에요.**
+목록에 남은 Peeky가 예전 빌드의 항목일 수 있어요. 목록에서 Peeky를 −로 지우고 다시 **허용하기**를 누르세요. 터미널에서는 `tccutil reset Accessibility com.eddieee.Peeky`(화면 기록은 `ScreenCapture`)로 초기화할 수 있어요. 화면 기록은 켠 뒤 **다시 열기**를 눌러야 적용돼요.
+
+**어떤 정보를 보내나요?**
+업데이트 확인 때 GitHub 공개 API에 최신 릴리스를 묻는 요청 하나만 보내요. 메뉴바 항목이나 화면 내용은 어디에도 보내지 않아요. 설정에서 자동 업데이트를 끄면 그것도 보내지 않아요.
+
+**노치가 없는 Mac에서도 쓸 수 있나요?**
+네. 메뉴바 아이콘을 그룹으로 정리해 모아 보는 용도로 쓸 수 있어요. "노치에 가려진 항목만 표시"는 노치가 있는 화면에서만 의미가 있어요.
+
+## 지우기
+
+1. 메뉴바 Peeky 아이콘 오른쪽 클릭 → **Peeky 종료**
+2. 응용 프로그램 폴더에서 Peeky를 휴지통으로
+3. (선택) 설정까지 지우려면 `defaults delete com.eddieee.Peeky`, 권한 기록은 `tccutil reset All com.eddieee.Peeky`
+
+## 직접 빌드하기
+
+Apple 실리콘 Mac, macOS 14 이상, Xcode Command Line Tools가 필요해요(Xcode는 없어도 돼요).
+
+```bash
+./scripts/make-signing-cert.sh   # (선택, 한 번만) 다시 빌드해도 권한이 유지되는 이 Mac 전용 인증서
+./scripts/test.sh                # 자체 점검
+./scripts/build-app.sh           # build/Peeky.app + build/Peeky-<버전>.dmg
+open build/Peeky.app
+```
+
+인증서로 서명하면 macOS가 그 인증서를 신뢰해야 권한이 인식돼요. 한 번 실행해 두세요:
+
+```bash
+security find-certificate -c "Peeky Local Signing" -p > /tmp/peeky.pem && security add-trusted-cert -r trustRoot -p codeSign -k ~/Library/Keychains/login.keychain-db /tmp/peeky.pem
+```
+
+## 라이선스
+
+[MIT](LICENSE)
