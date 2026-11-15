@@ -13,10 +13,15 @@ final class MenuBarHider {
     private var recollapseMonitor: Any?
     private var recollapseWork: DispatchWorkItem?
     private(set) var isCollapsed = false
+    /// 접었을 때 화면 밖으로 밀려나면 안 되는 Peeky 자신의 상태 아이콘들.
+    var protectedItems: () -> [NSStatusItem] = { [] }
+    /// Peeky 아이콘이 구분선 왼쪽에 있어서 접기를 되돌렸을 때 부른다.
+    var onBlocked: (() -> Void)?
 
     var isEnabled: Bool { divider != nil }
 
-    func setEnabled(_ enabled: Bool) {
+    /// `collapseNow`가 false면 펼친 채로 구분선만 만든다(처음 켰을 때 아이콘을 옮길 수 있게).
+    func setEnabled(_ enabled: Bool, collapseNow: Bool = true) {
         if enabled, divider == nil {
             StatusItemPlacement.prepare(autosaveName: Self.autosaveName, position: StatusItemPlacement.dividerPosition)
             let item = NSStatusBar.system.statusItem(withLength: Self.expandedLength)
@@ -28,7 +33,10 @@ final class MenuBarHider {
             item.button?.action = #selector(dividerClicked)
             item.button?.toolTip = L("Peeky 구분선 — 이 왼쪽의 항목은 메뉴바에서 숨겨요. 누르면 펼치기/접기")
             divider = item
-            collapse()
+            if collapseNow {
+                // 메뉴바가 구분선 자리를 잡은 뒤에 접는다.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.collapse() }
+            }
         } else if !enabled, let divider {
             NSStatusBar.system.removeStatusItem(divider)
             self.divider = nil
@@ -42,6 +50,19 @@ final class MenuBarHider {
         cancelRecollapse()
         divider.length = Self.collapsedLength
         isCollapsed = true
+        // Peeky 아이콘까지 밀려났으면 되돌린다. 그대로 두면 Peeky를 누를 방법이 없어진다.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            guard let self, self.isCollapsed, self.protectedItemIsHidden() else { return }
+            self.expand()
+            self.onBlocked?()
+        }
+    }
+
+    private func protectedItemIsHidden() -> Bool {
+        protectedItems().contains { item in
+            guard let window = item.button?.window, window.isVisible else { return true }
+            return NotchGeometry.isOffScreen(window.frame)
+        }
     }
 
     func expand() {

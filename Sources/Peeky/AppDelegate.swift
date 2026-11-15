@@ -37,8 +37,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 DispatchQueue.main.async { if let self { self.syncGroups(self.prefs.groups) } }
             }
             .store(in: &cancellables)
+        hider.protectedItems = { [weak self] in self.map { Array($0.statusItems.values) } ?? [] }
+        hider.onBlocked = { [weak self] in self?.showHiderBlocked() }
+        // 시작할 때는 바로 접고, 설정에서 새로 켰을 때는 펼친 채로 두어 아이콘을 옮길 수 있게 한다.
+        hider.setEnabled(prefs.hideInMenuBar)
         prefs.$hideInMenuBar
-            .sink { [weak self] enabled in self?.hider.setEnabled(enabled) }
+            .dropFirst()
+            .sink { [weak self] enabled in
+                self?.hider.setEnabled(enabled, collapseNow: false)
+                if enabled { self?.showHiderGuide() }
+            }
             .store(in: &cancellables)
         prefs.$hoverToOpen
             .sink { [weak self] enabled in self?.hover.setEnabled(enabled) }
@@ -75,6 +83,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         // 접힌 구분선이 남아 다른 항목을 가리지 않게 펼쳐 둔다.
         hider.expand()
+    }
+
+    // MARK: Menu bar hiding
+
+    private func showHiderGuide() {
+        let alert = NSAlert()
+        alert.messageText = L("메뉴바에 구분선(╱)이 생겼어요")
+        alert.informativeText = L("⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. Peeky 아이콘은 구분선 오른쪽에 두세요. 다 옮겼으면 구분선을 눌러 숨겨요.")
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
+    }
+
+    private func showHiderBlocked() {
+        let alert = NSAlert()
+        alert.messageText = L("Peeky 아이콘이 구분선 왼쪽에 있어요")
+        alert.informativeText = L("이대로 숨기면 Peeky 아이콘도 사라져서 펼쳐 두었어요. ⌘를 누른 채 Peeky 아이콘을 구분선 오른쪽으로 옮긴 뒤 구분선을 눌러 주세요.")
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
     }
 
     // MARK: Groups → status items & hot keys

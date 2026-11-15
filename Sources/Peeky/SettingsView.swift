@@ -126,6 +126,8 @@ struct SettingsView: View {
         } footer: {
             Text(L("그룹마다 메뉴바에 아이콘이 하나씩 생기고, 누르면 그 그룹의 항목만 바에 보여요. ⋯에서 그룹마다 줄 수와 표시 방식을 따로 정할 수 있어요."))
                 .font(.caption).foregroundStyle(.secondary)
+            Text(L("그룹은 Peeky 바에 보일 항목만 정해요. 메뉴바에서도 빼려면 「메뉴바 정리」에서 숨기기를 켜세요."))
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 
