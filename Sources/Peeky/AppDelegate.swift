@@ -90,7 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showHiderGuide() {
         let alert = NSAlert()
         alert.messageText = L("메뉴바에 구분선(╱)이 생겼어요")
-        alert.informativeText = L("⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. Peeky 아이콘은 구분선 오른쪽에 두세요. 다 옮겼으면 구분선을 눌러 숨겨요.")
+        alert.informativeText = L("⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. Peeky 아이콘은 구분선 오른쪽에 두세요. 다 옮겼으면 구분선 오른쪽의 › 버튼을 눌러 숨겨요.")
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
     }
@@ -98,7 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showHiderBlocked() {
         let alert = NSAlert()
         alert.messageText = L("Peeky 아이콘이 구분선 왼쪽에 있어요")
-        alert.informativeText = L("이대로 숨기면 Peeky 아이콘도 사라져서 펼쳐 두었어요. ⌘를 누른 채 Peeky 아이콘을 구분선 오른쪽으로 옮긴 뒤 구분선을 눌러 주세요.")
+        alert.informativeText = L("이대로 숨기면 Peeky 아이콘도 사라져서 펼쳐 두었어요. ⌘를 누른 채 Peeky 아이콘을 구분선 오른쪽으로 옮긴 뒤 › 버튼을 다시 눌러 주세요.")
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
     }
