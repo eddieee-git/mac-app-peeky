@@ -2,7 +2,16 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
-## 0.2.0 (2026-11-14)
+## 0.2.1 (2026-11-15)
+
+- Choose the language in Settings: System / 한국어 / English
+- The option for items outside groups is now called “Menu bar only” to make its meaning clear
+- Empty placeholder items from Control Center on macOS 26 are left out of the list
+- Updates use the updater shared by all five apps: separate switches for automatic checks (on by default) and automatic installs (off by default), plus an update item in the menu bar menu
+- Stronger update checks: installs only after the signature, SHA-256, bundle ID, version, and code signature are verified
+- About section in Settings: version, GitHub, changelog, problem reports, and other apps
+
+## 0.2.0 (2026-11-14, not released separately; included in 0.2.1)
 
 - Really hide items from the menu bar: items left of a divider are hidden, and clicking them in the Peeky bar briefly unfolds the menu bar to open their menus
 - Drag to reorder icons in the bar; Reset order in settings
