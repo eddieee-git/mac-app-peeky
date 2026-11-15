@@ -46,7 +46,7 @@
 
 1. Click the Peeky icon (`‹›`) in the menu bar or press **⌃⌥1**. The bar opens right below the menu bar.
 2. Click an icon in the bar to open that app's menu. Right-click tries the secondary menu.
-3. In settings, **Group per item** picks which group each icon appears in. **Hidden** shows it nowhere.
+3. In settings, **Group per item** picks which group each icon appears in. **Menu bar only** keeps it out of the Peeky bars and leaves it in the menu bar.
 4. To add groups: settings → **Groups** → **＋ Add group**. Each group can have its own name and symbol, and **⋯** sets rows and what to show for that group.
 5. Drag icons in the bar to reorder them. **Reset order** in settings goes back to menu bar order.
 

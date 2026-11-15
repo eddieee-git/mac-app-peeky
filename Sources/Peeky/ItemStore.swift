@@ -165,6 +165,13 @@ final class ItemStore: ObservableObject {
                 if usedKeys.contains(key) { key += "#\(index)" }
                 usedKeys.insert(key)
 
+                // macOS 26의 제어 센터에는 크기가 0인 빈 자리 항목이 여럿 있다. 화면에 없으니 건너뛴다.
+                let frame = AX.frame(child)
+                if identifier == nil, desc == nil, title == nil, help == nil,
+                   frame.map({ $0.width < 1 || $0.height < 1 }) ?? true { continue }
+                if UserDefaults.standard.bool(forKey: "diagnosticLog") {
+                    log("item \(app.bundleID) [\(index)] id=\(identifier ?? "-") desc=\(desc ?? "-") title=\(title ?? "-") help=\(help ?? "-")")
+                }
                 let label = SystemItemNames.label(bundleID: app.bundleID, identifier: identifier,
                                                   description: desc, title: title, help: help,
                                                   appName: app.name, index: index)
@@ -174,7 +181,7 @@ final class ItemStore: ObservableObject {
                                           appName: app.name,
                                           label: label,
                                           element: child,
-                                          frame: AX.frame(child),
+                                          frame: frame,
                                           appIcon: app.icon))
             }
         }

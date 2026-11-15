@@ -127,7 +127,7 @@ struct SettingsView: View {
                         Button(group.name) { filteredItems.forEach { prefs.assign($0.id, to: group.id) } }
                     }
                     Divider()
-                    Button(L("숨김")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
+                    Button(L("메뉴바에만")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
                 }
                 .fixedSize()
                 Button(L("순서 초기화")) { prefs.itemOrder = [] }
@@ -139,7 +139,7 @@ struct SettingsView: View {
             .buttonStyle(.borderless)
             .font(.callout)
         } footer: {
-            Text(L("각 항목이 어느 그룹 바에 보일지 고르세요. 「숨김」은 어느 바에도 안 나와요. 바의 항목을 클릭하면 실제 메뉴가 열리고, 오른쪽 클릭은 보조 메뉴를 시도해요. 바에서 항목을 끌면 순서를 바꿀 수 있어요."))
+            Text(L("각 항목이 어느 그룹 바에 보일지 고르세요. 「메뉴바에만」은 Peeky 바에 넣지 않고 메뉴바에 그대로 둬요. 바의 항목을 클릭하면 실제 메뉴가 열리고, 오른쪽 클릭은 보조 메뉴를 시도해요. 바에서 항목을 끌면 순서를 바꿀 수 있어요."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -275,7 +275,7 @@ struct SettingsView: View {
                     Label(group.name, systemImage: group.symbol).tag(Optional(group.id))
                 }
                 Divider()
-                Text(L("숨김")).tag(UUID?.none)
+                Text(L("메뉴바에만")).tag(UUID?.none)
             }
             .labelsHidden()
             .fixedSize()
