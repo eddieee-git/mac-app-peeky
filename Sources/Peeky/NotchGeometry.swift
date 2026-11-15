@@ -26,6 +26,25 @@ enum NotchGeometry {
         return onNotchScreen && frame.minX < notchMaxX
     }
 
+    /// Left edge of the notch in global x coordinates.
+    static var notchMinX: CGFloat? {
+        guard let screen = notchScreen, let left = screen.auxiliaryTopLeftArea else { return nil }
+        let insideScreen = left.minX >= screen.frame.minX - 1 && left.maxX <= screen.frame.maxX + 1
+        return insideScreen ? left.maxX : screen.frame.minX + left.maxX
+    }
+
+    /// The notch area of the menu bar in AppKit coordinates (bottom-left origin), if there is one.
+    static var notchRect: NSRect? {
+        guard let screen = notchScreen, let minX = notchMinX, let maxX = notchMaxX, maxX > minX else { return nil }
+        let height = menuBarHeight(on: screen)
+        return NSRect(x: minX, y: screen.frame.maxY - height, width: maxX - minX, height: height)
+    }
+
+    /// True when no screen shows the frame at all (macOS pushed the item out of the menu bar).
+    static func isOffScreen(_ frame: CGRect) -> Bool {
+        !NSScreen.screens.contains { frame.midX >= $0.frame.minX && frame.midX <= $0.frame.maxX }
+    }
+
     /// Height of the menu bar on a given screen.
     static func menuBarHeight(on screen: NSScreen) -> CGFloat {
         let h = screen.frame.maxY - screen.visibleFrame.maxY

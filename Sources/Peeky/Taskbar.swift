@@ -61,9 +61,12 @@ final class FlippedView: NSView {
     override var isFlipped: Bool { true }
 }
 
-/// A single menu bar item inside the strip. Highlights on hover.
+/// A single menu bar item inside the strip. Highlights on hover; drag to reorder.
 final class ItemButton: NSButton {
     var onRightClick: (() -> Void)?
+    var onDragBegan: (() -> Void)?
+    var onDragMoved: ((NSEvent) -> Void)?
+    var onDragEnded: (() -> Void)?
     private var tracking: NSTrackingArea?
 
     override init(frame: NSRect) {
@@ -97,6 +100,30 @@ final class ItemButton: NSButton {
     override func rightMouseDown(with event: NSEvent) {
         onRightClick?()
     }
+
+    /// 짧게 누르면 클릭, 4pt 넘게 끌면 순서 바꾸기.
+    override func mouseDown(with event: NSEvent) {
+        guard let window else { return }
+        let start = event.locationInWindow
+        var dragging = false
+        while let next = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp]) {
+            if next.type == .leftMouseDragged {
+                if !dragging, hypot(next.locationInWindow.x - start.x, next.locationInWindow.y - start.y) > 4 {
+                    dragging = true
+                    layer?.backgroundColor = nil
+                    onDragBegan?()
+                }
+                if dragging { onDragMoved?(next) }
+            } else {
+                if dragging {
+                    onDragEnded?()
+                } else if let action {
+                    NSApp.sendAction(action, to: target, from: self)
+                }
+                break
+            }
+        }
+    }
 }
 
 // MARK: - Controller
@@ -117,7 +144,9 @@ final class TaskbarController: NSObject {
 
     private let store = ItemStore.shared
     private let prefs = Preferences.shared
+    private let hider: MenuBarHider
     private let openSettings: () -> Void
+    private var draggedButton: ItemButton?
 
     private let panel: TaskbarPanel
     private let background = NSVisualEffectView()
@@ -136,7 +165,8 @@ final class TaskbarController: NSObject {
 
     var isVisible: Bool { panel.isVisible }
 
-    init(openSettings: @escaping () -> Void) {
+    init(hider: MenuBarHider, openSettings: @escaping () -> Void) {
+        self.hider = hider
         self.openSettings = openSettings
         panel = TaskbarPanel(contentRect: NSRect(x: 0, y: 0, width: 200, height: Metrics.height),
                              styleMask: [.nonactivatingPanel, .borderless],
@@ -167,9 +197,9 @@ final class TaskbarController: NSObject {
         background.layer?.masksToBounds = true
         panel.contentView = background
 
-        configureIconButton(leftButton, symbol: "chevron.left", tip: "왼쪽으로", action: #selector(scrollLeft))
-        configureIconButton(rightButton, symbol: "chevron.right", tip: "오른쪽으로", action: #selector(scrollRight))
-        configureIconButton(settingsButton, symbol: "gearshape", tip: "설정", action: #selector(settingsTapped))
+        configureIconButton(leftButton, symbol: "chevron.left", tip: L("왼쪽으로"), action: #selector(scrollLeft))
+        configureIconButton(rightButton, symbol: "chevron.right", tip: L("오른쪽으로"), action: #selector(scrollRight))
+        configureIconButton(settingsButton, symbol: "gearshape", tip: L("설정"), action: #selector(settingsTapped))
 
         scrollView.drawsBackground = false
         scrollView.hasHorizontalScroller = false
@@ -228,8 +258,9 @@ final class TaskbarController: NSObject {
         panel.makeKey()
         installMouseMonitor()
 
-        // Positions change when apps add/remove items; rescan every time the bar opens.
-        store.refresh()
+        // Positions change when apps add/remove items; rescan the known apps every time the bar opens,
+        // and only capture icons this bar shows.
+        store.refresh(captureIDs: Set(store.barItems(in: group).map(\.id)))
     }
 
     func hide() {
@@ -248,7 +279,7 @@ final class TaskbarController: NSObject {
     // MARK: Layout
 
     private func scheduleRebuild() {
-        guard !rebuildScheduled else { return }
+        guard !rebuildScheduled, draggedButton == nil else { return }
         rebuildScheduled = true
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -263,7 +294,7 @@ final class TaskbarController: NSObject {
 
         // Split items into 1–3 rows (in menu bar order), each row filled left → right.
         let items = store.barItems(in: groupID)
-        let rowCount = max(1, min(prefs.rowCount, items.count))
+        let rowCount = max(1, min(prefs.rowCount(for: groupID), items.count))
         let perRow = Int((Double(items.count) / Double(rowCount)).rounded(.up))
         var rowX = [CGFloat](repeating: 0, count: rowCount)
         for (index, item) in items.enumerated() {
@@ -278,8 +309,9 @@ final class TaskbarController: NSObject {
         let panelHeight = stripHeight + Metrics.padding * 2
         strip.frame = NSRect(x: 0, y: 0, width: contentWidth, height: stripHeight)
 
-        let emptyText: String? = !AX.isTrusted ? "손쉬운 사용 권한이 필요해요 — ⚙︎ 눌러 설정"
-            : items.isEmpty ? (prefs.onlyNotchHidden ? "노치에 가려진 항목이 없어요" : "이 그룹에 항목이 없어요 — ⚙︎에서 추가") : nil
+        let emptyText: String? = !AX.isTrusted ? L("손쉬운 사용 권한이 필요해요 — ⚙︎ 눌러 설정")
+            : items.isEmpty ? (prefs.onlyNotchHidden(for: groupID) ? L("노치에 가려진 항목이 없어요")
+                                                                  : L("이 그룹에 항목이 없어요 — ⚙︎에서 추가")) : nil
         emptyLabel.stringValue = emptyText ?? ""
         emptyLabel.isHidden = emptyText == nil
         emptyLabel.sizeToFit()
@@ -330,12 +362,15 @@ final class TaskbarController: NSObject {
             width = Metrics.fallbackIconSize + 12
         }
         button.frame.size = NSSize(width: width, height: Metrics.itemHeight)
-        button.toolTip = item.displayName + (item.isHiddenByNotch ? "  (노치에 가려짐)" : "")
+        button.toolTip = item.displayName + (item.isHiddenByNotch ? L("  (가려짐)") : "") + L("\n끌어서 순서 바꾸기")
         button.setAccessibilityLabel(item.displayName)
         button.target = self
         button.action = #selector(itemClicked(_:))
         button.identifier = NSUserInterfaceItemIdentifier(item.id)
         button.onRightClick = { [weak self] in self?.activate(item, secondary: true) }
+        button.onDragBegan = { [weak self, weak button] in if let button { self?.dragBegan(button) } }
+        button.onDragMoved = { [weak self] event in self?.dragMoved(event) }
+        button.onDragEnded = { [weak self] in self?.dragEnded() }
         return button
     }
 
@@ -372,19 +407,57 @@ final class TaskbarController: NSObject {
     }
 
     /// Opens the real item's menu. Accessibility "press" works even when the item sits under the notch.
+    /// Items Peeky hid from the menu bar are unfolded first, then folded again after the menu closes.
     private func activate(_ item: MenuBarItem, secondary: Bool) {
         hide()
         let element = item.element
-        let frame = item.frame
-        let clickable = frame != nil && !item.isHiddenByNotch
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.05) {
-            // AXPress on a status item can block until its menu closes, so stay off the main thread.
-            var ok = secondary ? AX.perform(element, kAXShowMenuAction) : false
-            if !ok { ok = AX.perform(element, kAXPressAction) }
-            if !ok, clickable, let frame {
-                AX.click(at: CGPoint(x: frame.midX, y: frame.midY), right: secondary)
+        hider.revealForClick {
+            // Read the frame again: unfolding the divider moves items.
+            let frame = AX.frame(element) ?? item.frame
+            let clickable = frame.map { !NotchGeometry.isHidden($0) } ?? false
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.05) {
+                // AXPress on a status item can block until its menu closes, so stay off the main thread.
+                var ok = secondary ? AX.perform(element, kAXShowMenuAction) : false
+                if !ok { ok = AX.perform(element, kAXPressAction) }
+                if !ok, clickable, let frame {
+                    AX.click(at: CGPoint(x: frame.midX, y: frame.midY), right: secondary)
+                }
             }
         }
+    }
+
+    // MARK: Drag to reorder
+
+    private func dragBegan(_ button: ItemButton) {
+        draggedButton = button
+        strip.addSubview(button) // bring to front
+        button.alphaValue = 0.85
+    }
+
+    private func dragMoved(_ event: NSEvent) {
+        guard let button = draggedButton else { return }
+        let point = strip.convert(event.locationInWindow, from: nil)
+        button.frame.origin = CGPoint(x: point.x - button.frame.width / 2,
+                                      y: min(max(0, point.y - button.frame.height / 2), strip.frame.height - button.frame.height))
+        // Scroll when dragging near either edge of the visible strip.
+        let visible = scrollView.contentView.bounds
+        if point.x < visible.minX + 16 { scrollView.scroll(by: -8, animated: false) }
+        if point.x > visible.maxX - 16 { scrollView.scroll(by: 8, animated: false) }
+    }
+
+    private func dragEnded() {
+        guard let dragged = draggedButton else { return }
+        draggedButton = nil
+        let others = strip.subviews.compactMap { $0 as? ItemButton }.filter { $0 !== dragged }
+        let rowHeight = Metrics.itemHeight + Metrics.rowSpacing
+        func slot(_ view: NSView) -> (Int, CGFloat) { (Int(view.frame.midY / rowHeight), view.frame.midX) }
+        let ordered = others.sorted { slot($0) < slot($1) }
+        let drop = slot(dragged)
+        let insertAt = ordered.firstIndex { slot($0) > drop } ?? ordered.count
+        var ids = ordered.compactMap { $0.identifier?.rawValue }
+        if let id = dragged.identifier?.rawValue { ids.insert(id, at: insertAt) }
+        prefs.setOrder(ids)
+        rebuild()
     }
 
     private func handleKey(_ event: NSEvent) -> Bool {

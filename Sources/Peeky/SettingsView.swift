@@ -11,123 +11,180 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("권한") {
-                permissionRow(title: "손쉬운 사용 (필수)",
-                              detail: "다른 앱의 메뉴 막대 항목을 찾고 클릭하는 데 필요해요.",
-                              granted: axTrusted) {
-                    AX.requestTrust()
-                    AX.openAccessibilitySettings()
-                }
-                permissionRow(title: "화면 기록 (선택)",
-                              detail: "실제 아이콘 모양을 보여줘요. 없으면 앱 아이콘으로 대신 표시해요. 허용한 뒤 Peeky를 다시 열어야 적용돼요.",
-                              granted: store.screenCaptureOK) {
-                    AX.requestScreenCapture()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { store.checkScreenCapture() }
-                }
-            }
-
-            Section("바 표시") {
-                Toggle("노치에 가려진 항목만 표시", isOn: $prefs.onlyNotchHidden)
-                Picker("줄 수", selection: $prefs.rowCount) {
-                    Text("한 줄").tag(1)
-                    Text("두 줄").tag(2)
-                    Text("세 줄").tag(3)
-                }
-                .pickerStyle(.segmented)
-                LabeledContent("바 최대 너비") {
-                    HStack {
-                        Slider(value: $prefs.maxStripWidth, in: 120...900, step: 20)
-                            .frame(width: 180)
-                        Text("\(Int(prefs.maxStripWidth))pt").monospacedDigit().foregroundStyle(.secondary)
-                    }
-                }
-                Toggle("로그인 시 실행", isOn: Binding(get: { prefs.launchAtLogin },
-                                                  set: { prefs.launchAtLogin = $0 }))
-                LabeledContent("단축키") { Text("⌃⌥1~9 그룹 열기 · ⌃⌥B 첫 그룹 · ← → 이동 · esc 닫기").foregroundStyle(.secondary) }
-            }
-
-            Section {
-                ForEach(Array(prefs.groups.enumerated()), id: \.element.id) { index, group in
-                    groupRow(group, index: index)
-                }
-            } header: {
-                HStack {
-                    Text("그룹")
-                    Spacer()
-                    Button { prefs.addGroup() } label: { Label("그룹 추가", systemImage: "plus") }
-                }
-                .buttonStyle(.borderless)
-                .font(.callout)
-            } footer: {
-                Text("그룹마다 메뉴 막대에 아이콘이 하나씩 생기고, 누르면 그 그룹의 항목만 바에 보여요.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-
-            Section {
-                if !axTrusted {
-                    Text("손쉬운 사용 권한을 주면 항목 목록이 여기에 나타나요.").foregroundStyle(.secondary)
-                } else if filteredItems.isEmpty {
-                    Text("찾은 항목이 없어요.").foregroundStyle(.secondary)
-                } else {
-                    ForEach(filteredItems) { item in itemRow(item) }
-                }
-            } header: {
-                HStack {
-                    Text("항목별 그룹")
-                    Spacer()
-                    Menu("모두 옮기기") {
-                        ForEach(prefs.groups) { group in
-                            Button(group.name) { filteredItems.forEach { prefs.assign($0.id, to: group.id) } }
-                        }
-                        Divider()
-                        Button("숨김") { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
-                    }
-                    .fixedSize()
-                    Button { store.refresh() } label: { Image(systemName: "arrow.clockwise") }
-                        .help("새로고침")
-                }
-                .buttonStyle(.borderless)
-                .font(.callout)
-            } footer: {
-                Text("각 항목이 어느 그룹 바에 보일지 고르세요. 「숨김」은 어느 바에도 안 나와요. 바의 항목을 클릭하면 실제 메뉴가 열리고, 오른쪽 클릭은 보조 메뉴를 시도해요.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-
-            Section("업데이트") {
-                LabeledContent("버전") { Text(updater.currentVersion).monospacedDigit() }
-                Toggle("새 버전이 나오면 자동으로 설치", isOn: $updater.autoInstall)
-                HStack {
-                    Text(updateStatus).foregroundStyle(.secondary)
-                    Spacer()
-                    if case .available = updater.state {
-                        Button("지금 설치") { updater.installPending() }
-                    }
-                    Button("지금 확인") { updater.checkNow() }
-                        .disabled(updater.state == .checking)
-                }
-                Link("릴리스 노트 보기", destination: Updater.releasesPage).font(.callout)
-            }
+            permissionsSection
+            barSection
+            menuBarSection
+            groupsSection
+            itemsSection
+            updateSection
+            advancedSection
         }
         .formStyle(.grouped)
-        .searchable(text: $search, placement: .toolbar, prompt: "항목 검색")
-        .frame(minWidth: 480, minHeight: 560)
-        .onAppear { store.refresh() }
+        .searchable(text: $search, placement: .toolbar, prompt: L("항목 검색"))
+        .frame(minWidth: 500, minHeight: 560)
+        .onAppear { store.refresh(full: true) }
         .onReceive(poll) { _ in
             let nowTrusted = AX.isTrusted
             if nowTrusted != axTrusted {
                 axTrusted = nowTrusted
-                store.refresh()
+                store.refresh(full: true)
             }
+        }
+    }
+
+    // MARK: Sections
+
+    private var permissionsSection: some View {
+        Section(L("권한")) {
+            permissionRow(title: L("손쉬운 사용 (필수)"),
+                          detail: L("다른 앱의 메뉴바 항목을 찾고 클릭하는 데 필요해요."),
+                          granted: axTrusted, showsRelaunch: false) {
+                AX.requestTrust()
+                AX.openAccessibilitySettings()
+            }
+            permissionRow(title: L("화면 기록 (선택)"),
+                          detail: L("실제 아이콘 모양을 보여 줘요. 없으면 앱 아이콘으로 대신 보여요. 허용한 뒤 Peeky를 다시 열어야 적용돼요."),
+                          granted: store.screenCaptureOK, showsRelaunch: true) {
+                AX.requestScreenCapture()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { store.checkScreenCapture() }
+            }
+        }
+    }
+
+    private var barSection: some View {
+        Section(L("바 표시")) {
+            Toggle(L("노치에 가려진 항목만 표시"), isOn: $prefs.onlyNotchHidden)
+            Picker(L("줄 수"), selection: $prefs.rowCount) {
+                Text(L("한 줄")).tag(1)
+                Text(L("두 줄")).tag(2)
+                Text(L("세 줄")).tag(3)
+            }
+            .pickerStyle(.segmented)
+            LabeledContent(L("바 최대 너비")) {
+                HStack {
+                    Slider(value: $prefs.maxStripWidth, in: 120...900, step: 20)
+                        .frame(width: 180)
+                    Text("\(Int(prefs.maxStripWidth))pt").monospacedDigit().foregroundStyle(.secondary)
+                }
+            }
+            Toggle(L("노치에 마우스를 올리면 첫 그룹 바 열기"), isOn: $prefs.hoverToOpen)
+                .disabled(NotchGeometry.notchScreen == nil && !prefs.hoverToOpen)
+                .help(NotchGeometry.notchScreen == nil ? L("노치가 있는 화면에서만 동작해요") : "")
+            Picker(L("단축키"), selection: $prefs.hotKeyModifiers) {
+                ForEach(HotKeyModifiers.allCases) { Text($0.title).tag($0) }
+            }
+            .help(L("그룹 단축키에 쓸 보조 키. 1~9는 각 그룹, B는 첫 그룹이에요."))
+            Toggle(L("로그인 시 실행"), isOn: Binding(get: { prefs.launchAtLogin },
+                                                  set: { prefs.launchAtLogin = $0 }))
+        }
+    }
+
+    private var menuBarSection: some View {
+        Section {
+            Toggle(L("메뉴바에서 항목 숨기기"), isOn: $prefs.hideInMenuBar)
+        } header: {
+            Text(L("메뉴바 정리"))
+        } footer: {
+            Text(L("켜면 메뉴바에 구분선(╱)이 생겨요. ⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. 구분선 왼쪽 항목은 메뉴바에서 사라지고 Peeky 바에서만 보여요. Peeky 아이콘은 구분선 오른쪽에 두세요. 구분선을 누르면 펼치거나 접어요."))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var groupsSection: some View {
+        Section {
+            ForEach(Array(prefs.groups.enumerated()), id: \.element.id) { index, group in
+                groupRow(group, index: index)
+            }
+        } header: {
+            HStack {
+                Text(L("그룹"))
+                Spacer()
+                Button { prefs.addGroup() } label: { Label(L("그룹 추가"), systemImage: "plus") }
+            }
+            .buttonStyle(.borderless)
+            .font(.callout)
+        } footer: {
+            Text(L("그룹마다 메뉴바에 아이콘이 하나씩 생기고, 누르면 그 그룹의 항목만 바에 보여요. ⋯에서 그룹마다 줄 수와 표시 방식을 따로 정할 수 있어요."))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var itemsSection: some View {
+        Section {
+            if !axTrusted {
+                Text(L("손쉬운 사용 권한을 주면 항목 목록이 여기에 나타나요.")).foregroundStyle(.secondary)
+            } else if filteredItems.isEmpty {
+                Text(L("찾은 항목이 없어요.")).foregroundStyle(.secondary)
+            } else {
+                ForEach(filteredItems) { item in itemRow(item) }
+            }
+        } header: {
+            HStack {
+                Text(L("항목별 그룹"))
+                Spacer()
+                Menu(L("모두 옮기기")) {
+                    ForEach(prefs.groups) { group in
+                        Button(group.name) { filteredItems.forEach { prefs.assign($0.id, to: group.id) } }
+                    }
+                    Divider()
+                    Button(L("숨김")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
+                }
+                .fixedSize()
+                Button(L("순서 초기화")) { prefs.itemOrder = [] }
+                    .disabled(prefs.itemOrder.isEmpty)
+                    .help(L("바에서 끌어 바꾼 순서를 메뉴바 순서로 되돌려요"))
+                Button { store.refresh(full: true) } label: { Image(systemName: "arrow.clockwise") }
+                    .help(L("새로고침"))
+            }
+            .buttonStyle(.borderless)
+            .font(.callout)
+        } footer: {
+            Text(L("각 항목이 어느 그룹 바에 보일지 고르세요. 「숨김」은 어느 바에도 안 나와요. 바의 항목을 클릭하면 실제 메뉴가 열리고, 오른쪽 클릭은 보조 메뉴를 시도해요. 바에서 항목을 끌면 순서를 바꿀 수 있어요."))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var updateSection: some View {
+        Section(L("업데이트")) {
+            LabeledContent(L("버전")) { Text(updater.currentVersion).monospacedDigit() }
+            Toggle(L("새 버전이 나오면 자동으로 설치"), isOn: $updater.autoInstall)
+            HStack {
+                Text(updateStatus).foregroundStyle(.secondary)
+                Spacer()
+                if case .available = updater.state {
+                    Button(L("지금 설치")) { updater.installPending() }
+                }
+                Button(L("지금 확인")) { updater.checkNow() }
+                    .disabled(updater.state == .checking)
+            }
+            Link(L("릴리스 노트 보기"), destination: Updater.releasesPage).font(.callout)
+        }
+    }
+
+    private var advancedSection: some View {
+        Section {
+            Toggle(L("진단 로그 남기기"), isOn: $prefs.diagnosticLog)
+            if prefs.diagnosticLog {
+                Button(L("로그 파일 보기")) {
+                    NSWorkspace.shared.selectFile(ItemStore.logPath, inFileViewerRootedAtPath: "")
+                }
+                .buttonStyle(.link)
+            }
+        } header: {
+            Text(L("고급"))
+        } footer: {
+            Text(L("권한이 인식되지 않을 때 원인을 찾는 데 써요. ~/Library/Logs/Peeky.log에 권한 상태만 기록하고, 끄면 파일을 지워요."))
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 
     private var updateStatus: String {
         switch updater.state {
-        case .idle: return "하루에 한 번 GitHub에서 새 버전을 확인해요"
-        case .checking: return "확인하는 중…"
-        case .upToDate: return "최신 버전이에요"
-        case .available(let v): return "새 버전 \(v)이 있어요"
-        case .installing(let v): return "\(v) 설치하는 중… 곧 다시 시작돼요"
+        case .idle: return L("하루에 한 번 GitHub에서 새 버전을 확인해요")
+        case .checking: return L("확인하는 중…")
+        case .upToDate: return L("최신 버전이에요")
+        case .available(let v): return L("새 버전 %@이 있어요", v)
+        case .installing(let v): return L("%@ 설치하는 중… 곧 다시 시작돼요", v)
         case .failed(let message): return message
         }
     }
@@ -138,8 +195,11 @@ struct SettingsView: View {
         return store.items.filter { $0.displayName.localizedCaseInsensitiveContains(q) }
     }
 
+    // MARK: Rows
+
     @ViewBuilder
-    private func permissionRow(title: String, detail: String, granted: Bool, request: @escaping () -> Void) -> some View {
+    private func permissionRow(title: String, detail: String, granted: Bool, showsRelaunch: Bool,
+                               request: @escaping () -> Void) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Image(systemName: granted ? "checkmark.circle.fill" : "exclamationmark.circle")
                 .foregroundStyle(granted ? .green : .orange)
@@ -149,10 +209,10 @@ struct SettingsView: View {
             }
             Spacer()
             if !granted {
-                Button("허용하기", action: request)
-                if title.hasPrefix("화면") {
-                    Button("다시 열기") { AppRelauncher.relaunch() }
-                        .help("시스템 설정에서 켠 뒤에는 Peeky를 다시 열어야 적용돼요")
+                Button(L("허용하기"), action: request)
+                if showsRelaunch {
+                    Button(L("다시 열기")) { AppRelauncher.relaunch() }
+                        .help(L("시스템 설정에서 켠 뒤에는 Peeky를 다시 열어야 적용돼요"))
                 }
             }
         }
@@ -169,20 +229,44 @@ struct SettingsView: View {
             .fixedSize()
             TextField("", text: Binding(get: { group.name },
                                         set: { name in editGroup(group.id) { $0.name = name } }),
-                      prompt: Text("그룹 이름"))
+                      prompt: Text(L("그룹 이름")))
                 .labelsHidden()
                 .textFieldStyle(.roundedBorder)
                 .frame(maxWidth: .infinity)
-            Text("\(store.items.filter { prefs.group(for: $0.id) == group.id }.count)개")
+            Text(L("%ld개", store.items.filter { prefs.group(for: $0.id) == group.id }.count))
                 .monospacedDigit().foregroundStyle(.secondary)
-            if index < 9 {
-                Text("⌃⌥\(index + 1)").font(.caption).foregroundStyle(.secondary)
+            if prefs.hotKeyModifiers != .off, index < 9 {
+                Text("\(prefs.hotKeyModifiers.symbol)\(index + 1)").font(.caption).foregroundStyle(.secondary)
             }
+            groupOptionsMenu(group)
             Button { prefs.removeGroup(group.id) } label: { Image(systemName: "trash") }
                 .buttonStyle(.borderless)
                 .disabled(prefs.groups.count <= 1)
-                .help(prefs.groups.count <= 1 ? "그룹은 하나 이상 있어야 해요" : "그룹 삭제 (항목은 첫 그룹으로 이동)")
+                .help(prefs.groups.count <= 1 ? L("그룹은 하나 이상 있어야 해요") : L("그룹 삭제 (항목은 첫 그룹으로 이동)"))
         }
+    }
+
+    private func groupOptionsMenu(_ group: ItemGroup) -> some View {
+        Menu {
+            Picker(L("줄 수"), selection: Binding(get: { group.rowCount ?? 0 },
+                                                set: { value in editGroup(group.id) { $0.rowCount = value == 0 ? nil : value } })) {
+                Text(L("전체 설정 따르기")).tag(0)
+                Text(L("한 줄")).tag(1)
+                Text(L("두 줄")).tag(2)
+                Text(L("세 줄")).tag(3)
+            }
+            Picker(L("표시할 항목"), selection: Binding(get: { group.onlyNotchHidden.map { $0 ? 1 : 2 } ?? 0 },
+                                                   set: { value in editGroup(group.id) { $0.onlyNotchHidden = value == 0 ? nil : value == 1 } })) {
+                Text(L("전체 설정 따르기")).tag(0)
+                Text(L("노치에 가려진 항목만")).tag(1)
+                Text(L("그룹의 모든 항목")).tag(2)
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help(L("이 그룹만의 설정"))
     }
 
     private func editGroup(_ id: UUID, _ change: (inout ItemGroup) -> Void) {
@@ -203,7 +287,7 @@ struct SettingsView: View {
             }
             Spacer()
             if item.isHiddenByNotch {
-                Text("가려짐")
+                Text(L("가려짐"))
                     .font(.caption2.weight(.medium))
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Capsule().fill(Color.orange.opacity(0.18)))
@@ -215,7 +299,7 @@ struct SettingsView: View {
                     Label(group.name, systemImage: group.symbol).tag(Optional(group.id))
                 }
                 Divider()
-                Text("숨김").tag(UUID?.none)
+                Text(L("숨김")).tag(UUID?.none)
             }
             .labelsHidden()
             .fixedSize()

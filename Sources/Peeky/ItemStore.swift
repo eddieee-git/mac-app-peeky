@@ -40,13 +40,28 @@ final class ItemStore: ObservableObject {
     private var isScanning = false
     private var pendingCompletions: [() -> Void] = []
 
-    /// Items the bar should show, in menu bar order (left → right).
+    /// 상태 아이콘이 있는 앱. 빠른 새로고침은 이 앱들에만 묻는다.
+    private var knownPIDs = Set<pid_t>()
+    private var needsFullScan = true
+    /// 캡처한 이미지의 원래 크기. 크기가 같으면 다시 캡처하지 않는다.
+    private var capturedSizes: [String: CGSize] = [:]
+
+    /// Items the bar should show, in the user's order (else menu bar order, left → right).
     func barItems(in group: UUID?) -> [MenuBarItem] {
+        guard let group else { return [] }
         let prefs = Preferences.shared
-        return items.filter { prefs.group(for: $0.id) == group && group != nil && (!prefs.onlyNotchHidden || $0.isHiddenByNotch) }
+        let notchOnly = prefs.onlyNotchHidden(for: group)
+        let list = items.filter { prefs.group(for: $0.id) == group && (!notchOnly || $0.isHiddenByNotch) }
+        return prefs.ordered(list) { $0.id }
     }
 
-    func refresh(completion: (() -> Void)? = nil) {
+    /// 다음 새로고침에서 실행 중인 앱 전체를 다시 훑는다(앱이 켜지거나 꺼졌을 때).
+    func invalidate() { needsFullScan = true }
+
+    /// - Parameters:
+    ///   - full: 실행 중인 모든 앱을 훑는다. 아니면 상태 아이콘이 있던 앱만 다시 본다.
+    ///   - captureIDs: 이 항목들만 아이콘을 캡처한다(nil이면 전부).
+    func refresh(full: Bool = false, captureIDs: Set<String>? = nil, completion: (() -> Void)? = nil) {
         if let completion { pendingCompletions.append(completion) }
         guard !isScanning else { return }
         guard AX.isTrusted else {
@@ -55,10 +70,13 @@ final class ItemStore: ObservableObject {
             return
         }
         isScanning = true
+        let scanAll = full || needsFullScan || knownPIDs.isEmpty
+        needsFullScan = false
+        let known = knownPIDs
 
         let myPID = ProcessInfo.processInfo.processIdentifier
         let apps = NSWorkspace.shared.runningApplications
-            .filter { $0.processIdentifier != myPID && !$0.isTerminated }
+            .filter { $0.processIdentifier != myPID && !$0.isTerminated && (scanAll || known.contains($0.processIdentifier)) }
             .map { AppInfo(pid: $0.processIdentifier,
                            bundleID: $0.bundleIdentifier ?? "pid.\($0.processIdentifier)",
                            name: $0.localizedName ?? $0.bundleIdentifier ?? "?",
@@ -68,9 +86,10 @@ final class ItemStore: ObservableObject {
             let found = Self.scan(apps)
             DispatchQueue.main.async {
                 self.items = found
+                self.knownPIDs = Set(found.map(\.pid))
                 self.isScanning = false
                 self.flushCompletions()
-                self.captureImages()
+                self.captureImages(only: captureIDs)
             }
         }
     }
@@ -103,13 +122,16 @@ final class ItemStore: ObservableObject {
             Self.log("screenCapture probe ok=\(ok) preflight=\(CGPreflightScreenCaptureAccess()) \(detail)")
             if ok != screenCaptureOK {
                 screenCaptureOK = ok
-                if ok { captureImages() }
+                if ok { captureImages(only: nil) }
             }
         }
     }
 
-    /// Appends a line to ~/Library/Logs/Peeky.log (permission troubleshooting).
+    nonisolated static let logPath = NSHomeDirectory() + "/Library/Logs/Peeky.log"
+
+    /// 진단 로그를 켰을 때만 ~/Library/Logs/Peeky.log에 한 줄 더한다(권한 문제 확인용).
     nonisolated static func log(_ line: String) {
+        guard UserDefaults.standard.bool(forKey: "diagnosticLog") else { return }
         let path = NSHomeDirectory() + "/Library/Logs/Peeky.log"
         let text = "\(Date()) \(line)\n"
         if let handle = FileHandle(forWritingAtPath: path) {
@@ -143,7 +165,9 @@ final class ItemStore: ObservableObject {
                 if usedKeys.contains(key) { key += "#\(index)" }
                 usedKeys.insert(key)
 
-                let label = desc ?? title ?? help ?? app.name
+                let label = SystemItemNames.label(bundleID: app.bundleID, identifier: identifier,
+                                                  description: desc, title: title, help: help,
+                                                  appName: app.name, index: index)
                 result.append(MenuBarItem(id: "\(app.bundleID)|\(key)",
                                           pid: app.pid,
                                           bundleID: app.bundleID,
@@ -160,10 +184,14 @@ final class ItemStore: ObservableObject {
 
     // MARK: - Screen capture of the real icons
 
-    private func captureImages() {
+    /// 이미지가 없거나 크기가 바뀐 항목만 캡처한다. `only`가 있으면 그 항목만 본다.
+    private func captureImages(only: Set<String>?) {
         guard screenCaptureOK else { return }
         let targets = items.compactMap { item -> (String, CGRect)? in
-            guard let f = item.frame, f.width > 1, f.height > 1 else { return nil }
+            guard only?.contains(item.id) ?? true,
+                  let f = item.frame, f.width > 1, f.height > 1, !NotchGeometry.isOffScreen(f) else { return nil }
+            if let old = capturedSizes[item.id], images[item.id] != nil,
+               abs(old.width - f.width) < 1, abs(old.height - f.height) < 1 { return nil }
             return (item.id, f)
         }
         guard !targets.isEmpty else { return }
@@ -190,8 +218,9 @@ final class ItemStore: ObservableObject {
                 // stay readable on the bar's own background in light and dark mode.
                 image.isTemplate = analysis.isMonochrome
                 captured[id] = image
+                self.capturedSizes[id] = frame.size
             }
-            self.images.merge(captured) { _, new in new }
+            if !captured.isEmpty { self.images.merge(captured) { _, new in new } }
         }
     }
 }

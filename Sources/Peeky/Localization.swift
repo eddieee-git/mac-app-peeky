@@ -1,0 +1,137 @@
+import Foundation
+
+/// 한국어 문구를 키로 쓴다. 시스템 언어가 한국어가 아니면 아래 사전의 영어로 바꾼다.
+/// 새 문구를 쓰면 `english`에 영어를 더한다. 같은 키가 두 번 들어가도 앞의 것을 쓰고, 자체 점검이 알려 준다.
+func L(_ key: String, _ args: CVarArg...) -> String {
+    let format = Localization.isKorean ? key : (Localization.english[key] ?? key)
+    return args.isEmpty ? format : String(format: format, arguments: args)
+}
+
+enum Localization {
+    static let isKorean: Bool = {
+        if let forced = UserDefaults.standard.string(forKey: "language") { return forced.hasPrefix("ko") }
+        return Locale.preferredLanguages.first?.hasPrefix("ko") ?? true
+    }()
+
+    static let english: [String: String] = Dictionary(pairs, uniquingKeysWith: { first, _ in first })
+
+    /// 자체 점검용: 두 번 들어간 키.
+    static var duplicateKeys: [String] {
+        var seen = Set<String>(), dupes: [String] = []
+        for (key, _) in pairs where !seen.insert(key).inserted { dupes.append(key) }
+        return dupes
+    }
+
+    static let pairs: [(String, String)] = [
+        ("%@ 열기", "Open %@"),
+        ("숨긴 항목 메뉴바에 펼치기", "Show hidden items in the menu bar"),
+        ("메뉴바 항목 다시 숨기기", "Hide menu bar items again"),
+        ("새 그룹 추가", "Add group"),
+        ("설정…", "Settings…"),
+        ("Peeky 종료", "Quit Peeky"),
+        ("Peeky 설정", "Peeky Settings"),
+        ("Peeky 구분선", "Peeky divider"),
+        ("Peeky 구분선 — 이 왼쪽의 항목은 메뉴바에서 숨겨요. 누르면 펼치기/접기", "Peeky divider — items to its left are hidden from the menu bar. Click to show/hide"),
+        ("끔", "Off"),
+        ("기본", "Default"),
+        ("그룹 %ld", "Group %ld"),
+        ("항목 검색", "Search items"),
+        ("권한", "Permissions"),
+        ("손쉬운 사용 (필수)", "Accessibility (required)"),
+        ("다른 앱의 메뉴바 항목을 찾고 클릭하는 데 필요해요.", "Needed to find and click other apps' menu bar items."),
+        ("화면 기록 (선택)", "Screen Recording (optional)"),
+        ("실제 아이콘 모양을 보여 줘요. 없으면 앱 아이콘으로 대신 보여요. 허용한 뒤 Peeky를 다시 열어야 적용돼요.", "Shows the real icon images; without it, app icons are shown instead. Reopen Peeky after allowing it."),
+        ("바 표시", "Bar"),
+        ("노치에 가려진 항목만 표시", "Show only items hidden by the notch"),
+        ("줄 수", "Rows"),
+        ("한 줄", "One"),
+        ("두 줄", "Two"),
+        ("세 줄", "Three"),
+        ("바 최대 너비", "Max bar width"),
+        ("노치에 마우스를 올리면 첫 그룹 바 열기", "Open the first group's bar when hovering over the notch"),
+        ("노치가 있는 화면에서만 동작해요", "Only works on a display with a notch"),
+        ("단축키", "Shortcut"),
+        ("그룹 단축키에 쓸 보조 키. 1~9는 각 그룹, B는 첫 그룹이에요.", "Modifier keys for group shortcuts: 1–9 open each group, B opens the first."),
+        ("로그인 시 실행", "Launch at login"),
+        ("메뉴바에서 항목 숨기기", "Hide items from the menu bar"),
+        ("메뉴바 정리", "Menu bar cleanup"),
+        ("켜면 메뉴바에 구분선(╱)이 생겨요. ⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. 구분선 왼쪽 항목은 메뉴바에서 사라지고 Peeky 바에서만 보여요. Peeky 아이콘은 구분선 오른쪽에 두세요. 구분선을 누르면 펼치거나 접어요.", "Adds a divider (╱) to the menu bar. Hold ⌘ and drag icons you want to hide to the left of the divider. Items left of it disappear from the menu bar and only show in the Peeky bar. Keep the Peeky icons to the right of the divider. Click the divider to show or hide."),
+        ("그룹", "Groups"),
+        ("그룹 추가", "Add group"),
+        ("그룹마다 메뉴바에 아이콘이 하나씩 생기고, 누르면 그 그룹의 항목만 바에 보여요. ⋯에서 그룹마다 줄 수와 표시 방식을 따로 정할 수 있어요.", "Each group gets its own menu bar icon and shows only its items. Use ⋯ to set rows and what to show per group."),
+        ("손쉬운 사용 권한을 주면 항목 목록이 여기에 나타나요.", "Items appear here once Accessibility is allowed."),
+        ("찾은 항목이 없어요.", "No items found."),
+        ("항목별 그룹", "Group per item"),
+        ("모두 옮기기", "Move all"),
+        ("숨김", "Hidden"),
+        ("순서 초기화", "Reset order"),
+        ("바에서 끌어 바꾼 순서를 메뉴바 순서로 되돌려요", "Go back to menu bar order after reordering in the bar"),
+        ("새로고침", "Refresh"),
+        ("각 항목이 어느 그룹 바에 보일지 고르세요. 「숨김」은 어느 바에도 안 나와요. 바의 항목을 클릭하면 실제 메뉴가 열리고, 오른쪽 클릭은 보조 메뉴를 시도해요. 바에서 항목을 끌면 순서를 바꿀 수 있어요.", "Choose which group's bar each item appears in. Hidden items appear in no bar. Clicking an item in the bar opens its real menu; right-click tries the secondary menu. Drag items in the bar to reorder."),
+        ("업데이트", "Updates"),
+        ("버전", "Version"),
+        ("새 버전이 나오면 자동으로 설치", "Install new versions automatically"),
+        ("지금 설치", "Install now"),
+        ("지금 확인", "Check now"),
+        ("릴리스 노트 보기", "Release notes"),
+        ("진단 로그 남기기", "Keep a diagnostic log"),
+        ("로그 파일 보기", "Show log file"),
+        ("고급", "Advanced"),
+        ("권한이 인식되지 않을 때 원인을 찾는 데 써요. ~/Library/Logs/Peeky.log에 권한 상태만 기록하고, 끄면 파일을 지워요.", "Helps find out why permissions aren't recognized. Only permission status is written to ~/Library/Logs/Peeky.log; turning it off deletes the file."),
+        ("하루에 한 번 GitHub에서 새 버전을 확인해요", "Checks GitHub for a new version once a day"),
+        ("확인하는 중…", "Checking…"),
+        ("최신 버전이에요", "You're up to date"),
+        ("새 버전 %@이 있어요", "Version %@ is available"),
+        ("%@ 설치하는 중… 곧 다시 시작돼요", "Installing %@… Peeky will restart shortly"),
+        ("허용하기", "Allow"),
+        ("다시 열기", "Reopen"),
+        ("시스템 설정에서 켠 뒤에는 Peeky를 다시 열어야 적용돼요", "After turning it on in System Settings, reopen Peeky to apply it"),
+        ("그룹 이름", "Group name"),
+        ("%ld개", "%ld"),
+        ("그룹은 하나 이상 있어야 해요", "You need at least one group"),
+        ("그룹 삭제 (항목은 첫 그룹으로 이동)", "Delete group (its items move to the first group)"),
+        ("전체 설정 따르기", "Use global setting"),
+        ("표시할 항목", "Show"),
+        ("노치에 가려진 항목만", "Only items hidden by the notch"),
+        ("그룹의 모든 항목", "All items in the group"),
+        ("이 그룹만의 설정", "Settings for this group"),
+        ("가려짐", "Hidden"),
+        ("%@ 항목 %ld", "%@ item %ld"),
+        ("키보드 밝기", "Keyboard Brightness"),
+        ("화면 미러링", "Screen Mirroring"),
+        ("지금 재생 중", "Now Playing"),
+        ("스테이지 매니저", "Stage Manager"),
+        ("제어 센터", "Control Center"),
+        ("입력 소스", "Input Source"),
+        ("손쉬운 사용", "Accessibility"),
+        ("배터리", "Battery"),
+        ("블루투스", "Bluetooth"),
+        ("집중 모드", "Focus"),
+        ("디스플레이", "Display"),
+        ("소리", "Sound"),
+        ("시계", "Clock"),
+        ("청각", "Hearing"),
+        ("날씨", "Weather"),
+        ("사용자 전환", "Fast User Switching"),
+        ("왼쪽으로", "Scroll left"),
+        ("오른쪽으로", "Scroll right"),
+        ("설정", "Settings"),
+        ("손쉬운 사용 권한이 필요해요 — ⚙︎ 눌러 설정", "Accessibility permission needed — click ⚙︎"),
+        ("노치에 가려진 항목이 없어요", "Nothing is hidden by the notch"),
+        ("이 그룹에 항목이 없어요 — ⚙︎에서 추가", "No items in this group — add some in ⚙︎"),
+        ("  (가려짐)", "  (hidden)"),
+        ("\n끌어서 순서 바꾸기", "\nDrag to reorder"),
+        ("아직 올라온 릴리스가 없어요", "No releases yet"),
+        ("GitHub 응답을 읽지 못했어요 (%ld)", "Couldn't read GitHub's response (%ld)"),
+        ("이 위치에서는 바꿔 넣을 수 없어요. Peeky를 응용 프로그램 폴더로 옮겨 주세요", "Can't replace Peeky here. Move it to the Applications folder"),
+        ("이 릴리스에는 자동으로 설치할 파일이 없어요", "This release has no file to install automatically"),
+        ("내려받지 못했어요 (HTTP %ld)", "Download failed (HTTP %ld)"),
+        ("서명 파일을 내려받지 못했어요 (HTTP %ld)", "Couldn't download the signature file (HTTP %ld)"),
+        ("업데이트 서명이 맞지 않아요. 설치하지 않았어요", "The update signature doesn't match. Not installed"),
+        ("내려받은 파일이 릴리스와 달라요. 설치하지 않았어요", "The downloaded file doesn't match the release. Not installed"),
+        ("dmg를 열지 못했어요", "Couldn't open the dmg"),
+        ("dmg 안의 앱이 Peeky %@가 아니에요", "The app in the dmg isn't Peeky %@"),
+        ("새 앱의 코드 서명을 확인하지 못했어요", "Couldn't verify the new app's code signature"),
+        ("새 앱을 복사하지 못했어요", "Couldn't copy the new app"),
+    ]
+}

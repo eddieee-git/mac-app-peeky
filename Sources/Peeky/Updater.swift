@@ -87,8 +87,8 @@ final class Updater: ObservableObject {
             request.setValue("Peeky", forHTTPHeaderField: "User-Agent")
             let (data, response) = try await URLSession.shared.data(for: request)
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            if code == 404 { throw Failure(message: "아직 올라온 릴리스가 없어요") }
-            guard code == 200, let release = Self.parse(data) else { throw Failure(message: "GitHub 응답을 읽지 못했어요 (\(code))") }
+            if code == 404 { throw Failure(message: L("아직 올라온 릴리스가 없어요")) }
+            guard code == 200, let release = Self.parse(data) else { throw Failure(message: L("GitHub 응답을 읽지 못했어요 (%ld)", code)) }
             guard Self.isNewer(release.version, than: currentVersion) else {
                 pending = nil
                 state = .upToDate
@@ -144,7 +144,7 @@ final class Updater: ObservableObject {
         if case .installing = state { return }
         let app = Bundle.main.bundleURL
         guard Self.canReplace(app) else {
-            state = .failed("이 위치에서는 바꿔 넣을 수 없어요. Peeky를 응용 프로그램 폴더로 옮겨 주세요")
+            state = .failed(L("이 위치에서는 바꿔 넣을 수 없어요. Peeky를 응용 프로그램 폴더로 옮겨 주세요"))
             return
         }
         state = .installing(release.version)
@@ -173,23 +173,23 @@ final class Updater: ObservableObject {
     nonisolated private static func prepare(_ release: Release, replacing app: URL,
                                             identifier: String) async throws -> (app: URL, work: URL) {
         guard let dmg = release.dmg, let signatureURL = release.signature else {
-            throw Failure(message: "이 릴리스에는 자동으로 설치할 파일이 없어요")
+            throw Failure(message: L("이 릴리스에는 자동으로 설치할 파일이 없어요"))
         }
         let (downloaded, response) = try await URLSession.shared.download(from: dmg)
         defer { try? FileManager.default.removeItem(at: downloaded) }
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-            throw Failure(message: "내려받지 못했어요 (HTTP \(http.statusCode))")
+            throw Failure(message: L("내려받지 못했어요 (HTTP %ld)", http.statusCode))
         }
         let (signature, sigResponse) = try await URLSession.shared.data(from: signatureURL)
         if let http = sigResponse as? HTTPURLResponse, http.statusCode != 200 {
-            throw Failure(message: "서명 파일을 내려받지 못했어요 (HTTP \(http.statusCode))")
+            throw Failure(message: L("서명 파일을 내려받지 못했어요 (HTTP %ld)", http.statusCode))
         }
         let data = try Data(contentsOf: downloaded, options: .mappedIfSafe)
         guard isSigned(data, signature: signature) else {
-            throw Failure(message: "업데이트 서명이 맞지 않아요. 설치하지 않았어요")
+            throw Failure(message: L("업데이트 서명이 맞지 않아요. 설치하지 않았어요"))
         }
         if let expected = release.sha256, try sha256(of: downloaded) != expected {
-            throw Failure(message: "내려받은 파일이 릴리스와 달라요. 설치하지 않았어요")
+            throw Failure(message: L("내려받은 파일이 릴리스와 달라요. 설치하지 않았어요"))
         }
 
         // 바꿔 넣을 자리와 같은 디스크에 작업 폴더를 만들어, 마지막 이동이 한 번에 끝나게 한다.
@@ -200,20 +200,20 @@ final class Updater: ObservableObject {
         let mount = work.appendingPathComponent("mnt")
         try fm.createDirectory(at: mount, withIntermediateDirectories: true)
         try run("/usr/bin/hdiutil", ["attach", downloaded.path, "-nobrowse", "-readonly", "-noautoopen", "-mountpoint", mount.path],
-                failure: "dmg를 열지 못했어요")
+                failure: L("dmg를 열지 못했어요"))
         defer { try? run("/usr/bin/hdiutil", ["detach", mount.path, "-force"], failure: "") }
 
         let new = mount.appendingPathComponent("Peeky.app")
         let info = NSDictionary(contentsOf: new.appendingPathComponent("Contents/Info.plist"))
         guard info?["CFBundleIdentifier"] as? String == identifier,
               info?["CFBundleShortVersionString"] as? String == release.version else {
-            throw Failure(message: "dmg 안의 앱이 Peeky \(release.version)가 아니에요")
+            throw Failure(message: L("dmg 안의 앱이 Peeky %@가 아니에요", release.version))
         }
         try run("/usr/bin/codesign", ["--verify", "--deep", "--strict", "-R=identifier \"\(identifier)\"", new.path],
-                failure: "새 앱의 코드 서명을 확인하지 못했어요")
+                failure: L("새 앱의 코드 서명을 확인하지 못했어요"))
 
         let staged = work.appendingPathComponent("Peeky.app")
-        try run("/usr/bin/ditto", [new.path, staged.path], failure: "새 앱을 복사하지 못했어요")
+        try run("/usr/bin/ditto", [new.path, staged.path], failure: L("새 앱을 복사하지 못했어요"))
         try? run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", staged.path], failure: "")
         success = true
         return (staged, work)

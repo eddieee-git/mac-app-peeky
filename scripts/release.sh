@@ -24,6 +24,11 @@ fi
 
 ./scripts/test.sh
 ./scripts/build-app.sh
+# 배포본은 늘 인증서로 서명한다. 임시 서명은 번들 ID만 확인하므로 같은 ID를 흉내 낸 앱이 권한을 이어받을 수 있다.
+if ! codesign -dv build/Peeky.app 2>&1 | grep -q "Authority=Peeky Local Signing"; then
+    echo "Peeky Local Signing 인증서로 서명되지 않았어요. ./scripts/make-signing-cert.sh를 먼저 실행해 주세요."
+    exit 1
+fi
 if [[ ! -f "build/Peeky-$version.dmg.sig" ]]; then
     echo "업데이트 서명(.sig)이 없어요. ~/.config/peeky/update-signing.key를 확인해 주세요."
     exit 1

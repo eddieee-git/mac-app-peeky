@@ -31,7 +31,7 @@ swift scripts/sign-update.swift public  # 업데이트 서명 키의 공개 키 
 - 서명이나 번들 ID가 바뀐 뒤 목록의 옛 항목이 남아 있으면 `tccutil reset Accessibility|ScreenCapture com.eddieee.Peeky` 후 다시 허용.
 - `CGPreflightScreenCaptureAccess()`는 믿지 않는다. 실제 `SCShareableContent` 호출로 확인한다(`ItemStore.checkScreenCapture`).
   사용자가 요청하기 전에는 이 호출을 하지 않는다(시스템 확인 창이 뜸). 화면 기록은 앱을 다시 열어야 적용된다.
-- 문제를 볼 때는 `~/Library/Logs/Peeky.log`(시작할 때 새로 씀)에 권한 상태가 남는다.
+- 문제를 볼 때는 진단 로그를 켜고 `~/Library/Logs/Peeky.log`(시작할 때 새로 씀)를 본다.
 - 셸에서 `log`는 zsh 내장 명령과 겹친다. 시스템 로그는 `/usr/bin/log show`로 본다.
 
 ## 릴리스 순서
@@ -55,12 +55,15 @@ dmg 안 앱 이름은 `Peeky.app`, 번들 ID와 버전은 태그와 맞아야 �
 | 파일 | 하는 일 |
 |---|---|
 | `main.swift` | 시작점. `--self-test`면 점검만 돌리고 끝냄 |
-| `AppDelegate.swift` | 그룹마다 상태 아이콘, ⌃⌥1~9·⌃⌥B 단축키, 오른쪽 클릭 메뉴, 앱 실행/종료 감지 |
-| `ItemStore.swift` | 손쉬운 사용(`AXExtrasMenuBar`)으로 모든 앱의 메뉴바 항목 수집, ScreenCaptureKit으로 아이콘 캡처, `Peeky.log` |
-| `Taskbar.swift` | 바 패널. 여러 줄 배치, 화살표·휠·키보드 스크롤, 항목 클릭(AXPress → 실패하면 합성 클릭) |
-| `NotchGeometry.swift` | 노치 위치, 항목이 가려졌는지 판단 |
-| `Preferences.swift` | 설정(UserDefaults): 그룹, 항목별 그룹, 숨김, 줄 수, 너비, 로그인 시 실행 |
-| `SettingsView.swift` | 설정 창(SwiftUI): 권한, 표시, 그룹, 항목별 그룹, 업데이트 |
+| `AppDelegate.swift` | 그룹마다 상태 아이콘, 단축키(보조 키 선택), 오른쪽 클릭 메뉴, 구분선·노치 호버 켜고 끄기, 앱 실행/종료 감지 |
+| `ItemStore.swift` | 손쉬운 사용(`AXExtrasMenuBar`)으로 메뉴바 항목 수집(빠른 새로고침은 아는 앱만), 바뀐 아이콘만 캡처, 진단 로그 |
+| `SystemItemNames.swift` | 이름 없는 macOS 기본 항목에 이름 붙이기(낱말 표, 구체적인 낱말이 앞) |
+| `Taskbar.swift` | 바 패널. 그룹별 줄 수, 화살표·휠·키보드 스크롤, 끌어서 순서 바꾸기, 항목 클릭(숨긴 항목은 펼친 뒤 AXPress) |
+| `MenuBarHider.swift` | 구분선으로 메뉴바에서 숨기기, 새 아이콘 처음 자리(`StatusItemPlacement`), 노치 호버(`HoverWatcher`) |
+| `NotchGeometry.swift` | 노치 위치(`notchRect`), 항목이 가려졌는지·화면 밖인지 |
+| `Preferences.swift` | 설정(UserDefaults): 그룹(그룹별 옵션), 항목별 그룹, 숨김, 순서, 표시, 단축키, 진단 로그 |
+| `SettingsView.swift` | 설정 창(SwiftUI) |
+| `Localization.swift` | `L()`과 영어 사전 |
 | `Updater.swift` | 최신 릴리스 확인 → dmg 내려받아 확인(Ed25519·SHA-256·번들 ID·버전·코드 서명) → 바꿔 넣고 다시 시작 |
 | `HotKey.swift` | Carbon 전역 단축키(핸들러 하나를 id로 나눠 씀) |
 | `AX.swift`, `AppRelauncher.swift` | 손쉬운 사용 도우미, 권한 요청, 다시 열기 |
@@ -73,3 +76,7 @@ dmg 안 앱 이름은 `Peeky.app`, 번들 ID와 버전은 태그와 맞아야 �
 - 상태 아이콘에 `AXPress`를 하면 메뉴가 닫힐 때까지 돌아오지 않을 수 있어 메인 스레드 밖에서 부른다.
 - `NSScreen`은 메인 스레드에서만 쓴다. 노치 판정은 백그라운드로 넘기기 전에 해 둔다.
 - 설정 추가: `@Published var x { didSet { defaults.set(...) } }`, `init`에서 `defaults.object(forKey:) as? … ?? 기본값`.
+- **번역**: 사용자 문구는 `L("한국어")`로 쓰고 `Localization.pairs`에 영어를 더한다. 같은 키가 두 번 들어가면 자체 점검이 실패한다.
+- **구분선 숨기기**: 구분선 길이를 10,000pt로 늘려 왼쪽 항목을 화면 밖으로 민다. 앱이 끝날 때는 펼쳐 둔다(`applicationWillTerminate`).
+- **새 상태 아이콘 자리**: `NSStatusItem Preferred Position <autosaveName>`을 처음 한 번만 넣는다. 사용자가 옮긴 값은 건드리지 않는다.
+- **권한 확인 로그**는 설정 → 고급 → 진단 로그를 켜야 남는다(`defaults write com.eddieee.Peeky diagnosticLog -bool true`).

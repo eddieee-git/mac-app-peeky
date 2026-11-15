@@ -20,12 +20,15 @@
 - **Click hidden icons**: a bar drops down below the menu bar, and even icons hidden behind the notch open their real menus.
 - **Flip through**: with many icons, use the **‹ ›** arrows, mouse wheel or trackpad, or ← → on the keyboard.
 - **One, two or three rows**: spread the bar over several rows to scroll less.
-- **Groups**: each group gets its own icon in the menu bar and shows only the items you put in it — e.g. "Work" and "System".
+- **Groups**: each group gets its own icon in the menu bar and shows only the items you put in it — e.g. "Work" and "System". Rows and what to show can be set per group.
+- **Really hide from the menu bar**: icons moved left of the divider disappear from the menu bar and only show in the Peeky bar.
+- **Drag to reorder**: drag icons inside the bar into any order.
+- **Hover over the notch**: optionally open the bar just by resting the pointer on the notch.
 - **Real icon images**: with Screen Recording permission, items look exactly as they do in the menu bar (otherwise the app icon is shown).
 - **Only what the notch hides**: optionally list just the items that are hidden right now.
+- **Readable names**: built-in macOS items without a name get one — Battery, Wi-Fi, Sound and so on.
 - **In-app updates**: new versions are downloaded, signature-checked and swapped in.
-
-The app's interface is in Korean.
+- **Korean and English**: the interface is in English unless your system language is Korean.
 
 ## Install
 
@@ -36,15 +39,23 @@ The app's interface is in Korean.
    - **macOS 14 (Sonoma)**: right-click Peeky in Applications → **Open**.
 
    Or run `xattr -dr com.apple.quarantine /Applications/Peeky.app` in Terminal.
-4. The settings window opens on first launch. Click **허용하기** (Allow) next to **손쉬운 사용** (Accessibility) and turn Peeky on in the list (required).
-5. (Optional) **화면 기록** (Screen Recording) → turn Peeky on → **다시 열기** (Reopen) to show real icon images.
+4. The settings window opens on first launch. Click **Allow** next to **Accessibility** and turn Peeky on in the list (required).
+5. (Optional) **Screen Recording** → turn Peeky on → **Reopen** to show real icon images.
 
 ## Usage
 
 1. Click the Peeky icon (`‹›`) in the menu bar or press **⌃⌥1**. The bar opens right below the menu bar.
 2. Click an icon in the bar to open that app's menu. Right-click tries the secondary menu.
-3. In settings, **항목별 그룹** (Group per item) picks which group each icon appears in. 「숨김」 (Hidden) shows it nowhere.
-4. To add groups: settings → **그룹** (Groups) → **＋ 그룹 추가** (Add group). Each group can have its own name and symbol.
+3. In settings, **Group per item** picks which group each icon appears in. **Hidden** shows it nowhere.
+4. To add groups: settings → **Groups** → **＋ Add group**. Each group can have its own name and symbol, and **⋯** sets rows and what to show for that group.
+5. Drag icons in the bar to reorder them. **Reset order** in settings goes back to menu bar order.
+
+### Hiding items from the menu bar
+
+1. Settings → **Menu bar cleanup** → turn on **Hide items from the menu bar**. A divider (╱) appears in the menu bar.
+2. Hold ⌘ and drag icons you want to hide to the **left** of the divider. Keep the Peeky icons to its **right**.
+3. Items left of the divider disappear from the menu bar and only show in the Peeky bar. Clicking one in the bar briefly unfolds the menu bar to open its menu, then hides it again once the menu closes.
+4. Click the divider, or use the Peeky icon's right-click menu, to show or hide them any time.
 
 If the Peeky icon itself is hidden by the notch, ⌘-drag it to the right; the position is remembered. Shortcuts always work.
 
@@ -57,30 +68,39 @@ If the Peeky icon itself is hidden by the notch, ⌘-drag it to the right; the p
 | ← → | (while the bar is open) scroll left/right |
 | esc | Close the bar |
 
+The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off, in settings → **Shortcut**.
+
 ## Settings
 
 | Setting | Description |
 |---|---|
-| Only items hidden by the notch | Shows only items currently under the notch or pushed off-screen |
-| Rows | One / two / three |
+| Only items hidden by the notch | Shows only items currently under the notch or pushed off-screen (per group too) |
+| Rows | One / two / three (per group too) |
+| Open the bar when hovering over the notch | Notched displays only (off by default) |
+| Shortcut | ⌃⌥ / ⌃⌘ / ⌥⌘ / ⌃⇧ / off |
+| Hide items from the menu bar | Hides items left of the divider (off by default) |
 | Max bar width | Beyond this width, use arrows and scrolling |
 | Launch at login | Start automatically |
 | Install new versions automatically | Checks GitHub once a day and installs new versions (on by default) |
+| Keep a diagnostic log | Writes permission status to `~/Library/Logs/Peeky.log` (off by default; turning it off deletes the file) |
 
 ## FAQ
 
 **I turned the permission on but settings still shows orange.**
-The Peeky entry in the list may belong to an older build. Remove it with − and click Allow again, or reset with `tccutil reset Accessibility com.eddieee.Peeky` (`ScreenCapture` for Screen Recording). Screen Recording takes effect after **Reopen**.
+The Peeky entry in the list may belong to an older build. Remove it with − and click Allow again (turn on **Keep a diagnostic log** under Advanced to see what Peeky detects), or reset with `tccutil reset Accessibility com.eddieee.Peeky` (`ScreenCapture` for Screen Recording). Screen Recording takes effect after **Reopen**.
 
 **What does it send?**
 Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turning off automatic updates stops that too.
+
+**Icons I hid from the menu bar don't come back.**
+Click the divider, or right-click a Peeky icon → **Show hidden items in the menu bar**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
 
 **Does it work on Macs without a notch?**
 Yes — it's still useful for grouping menu bar icons. "Only items hidden by the notch" only matters on a notched display.
 
 ## Uninstall
 
-1. Right-click the Peeky icon → **Peeky 종료** (Quit)
+1. Right-click the Peeky icon → **Quit Peeky**
 2. Move Peeky from Applications to the Trash
 3. (Optional) `defaults delete com.eddieee.Peeky` for settings, `tccutil reset All com.eddieee.Peeky` for permission records
 
