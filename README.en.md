@@ -52,10 +52,11 @@
 
 ### Hiding items from the menu bar
 
-1. Settings → **Menu bar cleanup** → turn on **Hide items from the menu bar**. A divider (╱) appears in the menu bar.
+1. Settings → **Menu bar cleanup** → turn on **Hide items from the menu bar**. A divider (╱) and a **›** button appear in the menu bar. Nothing is hidden yet.
 2. Hold ⌘ and drag icons you want to hide to the **left** of the divider. Keep the Peeky icons to its **right**.
 3. Items left of the divider disappear from the menu bar and only show in the Peeky bar. Clicking one in the bar briefly unfolds the menu bar to open its menu, then hides it again once the menu closes.
-4. Click the divider, or use the Peeky icon's right-click menu, to show or hide them any time.
+4. When you're done, click **›** to hide them. While hidden it turns into **‹**; click it to show them again. The Peeky icon's right-click menu does the same.
+5. If a Peeky icon is left of the divider, Peeky keeps the menu bar unfolded and tells you.
 
 If the Peeky icon itself is hidden by the notch, ⌘-drag it to the right; the position is remembered. Shortcuts always work.
 
@@ -95,7 +96,7 @@ The Peeky entry in the list may belong to an older build. Remove it with − and
 Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turn off automatic checks in Settings and not even that is sent.
 
 **Icons I hid from the menu bar don't come back.**
-Click the divider, or right-click a Peeky icon → **Show hidden items in the menu bar**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
+Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show hidden items in the menu bar**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
 
 **Does it work on Macs without a notch?**
 Yes — it's still useful for grouping menu bar icons. "Only items hidden by the notch" only matters on a notched display.
