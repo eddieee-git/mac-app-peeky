@@ -1,4 +1,4 @@
-// Peeky 앱 아이콘을 그려 Resources/AppIcon.icns와 docs/icon.png를 만든다.
+// Peeky 앱 아이콘을 그려 Resources/AppIcon.icns와 docs/images/icon.png를 만든다.
 // 실행: swift scripts/make-icon.swift
 import AppKit
 
@@ -87,4 +87,4 @@ iconutil.arguments = ["-c", "icns", iconset.path, "-o", "Resources/AppIcon.icns"
 try iconutil.run()
 iconutil.waitUntilExit()
 try FileManager.default.createDirectory(atPath: "docs", withIntermediateDirectories: true)
-try png(512).write(to: URL(fileURLWithPath: "docs/icon.png"))
+try png(512).write(to: URL(fileURLWithPath: "docs/images/icon.png"))

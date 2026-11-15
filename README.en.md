@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/icon.png" width="96" alt="Peeky icon">
+  <img src="docs/images/icon.png" width="96" alt="Peeky icon">
 </p>
 
 <h1 align="center">Peeky</h1>
@@ -27,8 +27,8 @@
 - **Real icon images**: with Screen Recording permission, items look exactly as they do in the menu bar (otherwise the app icon is shown).
 - **Only what the notch hides**: optionally list just the items that are hidden right now.
 - **Readable names**: built-in macOS items without a name get one — Battery, Wi-Fi, Sound and so on.
-- **In-app updates**: new versions are downloaded, signature-checked and swapped in.
-- **Korean and English**: the interface is in English unless your system language is Korean.
+- **In-app updates**: tells you about new versions, checks the signature, and swaps them in.
+- **English and Korean**: follows your Mac's language at first; change it in Settings.
 
 ## Install
 
@@ -81,7 +81,9 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 | Hide items from the menu bar | Hides items left of the divider (off by default) |
 | Max bar width | Beyond this width, use arrows and scrolling |
 | Launch at login | Start automatically |
-| Install new versions automatically | Checks GitHub once a day and installs new versions (on by default) |
+| Language | Follow system / 한국어 / English. Reopen Peeky to apply |
+| Check for new versions automatically | Checks GitHub once a day (on by default) |
+| Install new versions automatically | Installs a found update by itself while you aren't using Peeky (off by default) |
 | Keep a diagnostic log | Writes permission status to `~/Library/Logs/Peeky.log` (off by default; turning it off deletes the file) |
 
 ## FAQ
@@ -90,7 +92,7 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 The Peeky entry in the list may belong to an older build. Remove it with − and click Allow again (turn on **Keep a diagnostic log** under Advanced to see what Peeky detects), or reset with `tccutil reset Accessibility com.eddieee.Peeky` (`ScreenCapture` for Screen Recording). Screen Recording takes effect after **Reopen**.
 
 **What does it send?**
-Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turning off automatic updates stops that too.
+Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turn off automatic checks in Settings and not even that is sent.
 
 **Icons I hid from the menu bar don't come back.**
 Click the divider, or right-click a Peeky icon → **Show hidden items in the menu bar**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
@@ -124,3 +126,14 @@ security find-certificate -c "Peeky Local Signing" -p > /tmp/peeky.pem && securi
 ## License
 
 [MIT](LICENSE)
+
+<!-- more-apps:start -->
+## More apps
+
+| | App | |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-clocky/main/docs/images/icon.png" width="32" alt=""> | [Clocky](https://github.com/eddieee-git/mac-app-clocky) | Flip-clock timers, alarms and calendar alerts from the menu bar |
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-floaty/main/docs/images/icon.png" width="32" alt=""> | [Floaty](https://github.com/eddieee-git/mac-app-floaty) | Floating sticky notes, right from the menu bar |
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-gitty/main/docs/images/icon.png" width="32" alt=""> | [Gitty](https://github.com/eddieee-git/mac-app-gitty) | Work with Git repositories like a file manager |
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-grabby/main/docs/images/icon.png" width="32" alt=""> | [Grabby](https://github.com/eddieee-git/mac-app-grabby) | Capture, mark it up in place, and paste right away |
+<!-- more-apps:end -->

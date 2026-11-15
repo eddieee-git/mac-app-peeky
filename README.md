@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/icon.png" width="96" alt="Peeky 아이콘">
+  <img src="docs/images/icon.png" width="96" alt="Peeky 아이콘">
 </p>
 
 <h1 align="center">Peeky</h1>
@@ -27,8 +27,8 @@
 - **진짜 아이콘 모양**: 화면 기록 권한을 주면 메뉴바에 보이는 그대로의 아이콘을 보여 줘요(없으면 앱 아이콘).
 - **노치에 가려진 것만 보기**: 지금 실제로 가려진 항목만 바에 띄울 수 있어요.
 - **알아보기 쉬운 이름**: 배터리, Wi-Fi, 소리처럼 이름이 없던 macOS 기본 항목에도 이름을 붙여요.
-- **앱 안 업데이트**: 새 버전이 나오면 내려받아 서명을 확인하고 바꿔 넣어요.
-- **한국어·영어**: 시스템 언어가 한국어가 아니면 영어로 보여요.
+- **앱 안 업데이트**: 새 버전이 나오면 알려 주고, 서명을 확인한 뒤 바꿔 넣어요.
+- **한국어·영어**: 처음에는 Mac의 언어를 따르고, 설정에서 바꿀 수 있어요.
 
 ## 설치
 
@@ -81,7 +81,9 @@ Peeky 아이콘 자체가 노치에 가려지면 ⌘를 누른 채 오른쪽으�
 | 메뉴바에서 항목 숨기기 | 구분선 왼쪽 항목을 메뉴바에서 숨김(기본 끔) |
 | 바 최대 너비 | 이 너비를 넘으면 화살표와 스크롤로 넘겨요 |
 | 로그인 시 실행 | Mac을 켤 때 자동으로 실행 |
-| 새 버전이 나오면 자동으로 설치 | 하루 한 번 GitHub에서 확인하고 새 버전을 설치해요(기본 켬) |
+| 언어 | 시스템 설정 따르기 / 한국어 / English. 바꾸면 Peeky를 다시 열어야 적용돼요 |
+| 새 버전 자동으로 확인 | 하루 한 번 GitHub에서 새 버전을 확인해요(기본 켬) |
+| 새 버전 자동으로 설치 | 확인한 새 버전을 Peeky를 쓰지 않을 때 알아서 설치해요(기본 끔) |
 | 진단 로그 남기기 | 권한 상태를 `~/Library/Logs/Peeky.log`에 기록(기본 끔, 끄면 파일 삭제) |
 
 ## 자주 묻는 질문
@@ -90,7 +92,7 @@ Peeky 아이콘 자체가 노치에 가려지면 ⌘를 누른 채 오른쪽으�
 목록에 남은 Peeky가 예전 빌드의 항목일 수 있어요. 목록에서 Peeky를 −로 지우고 다시 **허용하기**를 누르세요. 설정 → 고급 → **진단 로그 남기기**를 켜면 Peeky가 권한을 어떻게 보고 있는지 로그로 볼 수 있어요. 터미널에서는 `tccutil reset Accessibility com.eddieee.Peeky`(화면 기록은 `ScreenCapture`)로 초기화할 수 있어요. 화면 기록은 켠 뒤 **다시 열기**를 눌러야 적용돼요.
 
 **어떤 정보를 보내나요?**
-업데이트 확인 때 GitHub 공개 API에 최신 릴리스를 묻는 요청 하나만 보내요. 메뉴바 항목이나 화면 내용은 어디에도 보내지 않아요. 설정에서 자동 업데이트를 끄면 그것도 보내지 않아요.
+업데이트 확인 때 GitHub 공개 API에 최신 릴리스를 묻는 요청 하나만 보내요. 메뉴바 항목이나 화면 내용은 어디에도 보내지 않아요. 설정에서 자동 확인을 끄면 그것도 보내지 않아요.
 
 **메뉴바에서 숨긴 아이콘이 안 돌아와요.**
 구분선을 누르거나 Peeky 아이콘 오른쪽 클릭 → **숨긴 항목 메뉴바에 펼치기**를 고르세요. 설정에서 **메뉴바에서 항목 숨기기**를 끄면 구분선이 사라지고 모두 돌아와요. Peeky를 종료해도 펼친 상태로 돌아와요.
@@ -124,3 +126,14 @@ security find-certificate -c "Peeky Local Signing" -p > /tmp/peeky.pem && securi
 ## 라이선스
 
 [MIT](LICENSE)
+
+<!-- more-apps:start -->
+## 다른 앱
+
+| | 앱 | |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-clocky/main/docs/images/icon.png" width="32" alt=""> | [Clocky](https://github.com/eddieee-git/mac-app-clocky) | 메뉴바에서 꺼내 쓰는 넘김시계 타이머·알람·일정 알림 |
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-floaty/main/docs/images/icon.png" width="32" alt=""> | [Floaty](https://github.com/eddieee-git/mac-app-floaty) | 메뉴바에서 바로 꺼내 쓰는 플로팅 스티커 메모 |
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-gitty/main/docs/images/icon.png" width="32" alt=""> | [Gitty](https://github.com/eddieee-git/mac-app-gitty) | Git 저장소를 파일 관리자처럼 다루는 앱 |
+| <img src="https://raw.githubusercontent.com/eddieee-git/mac-app-grabby/main/docs/images/icon.png" width="32" alt=""> | [Grabby](https://github.com/eddieee-git/mac-app-grabby) | 찍고, 그 자리에서 그리고, 바로 붙여 넣는 화면 캡처 |
+<!-- more-apps:end -->

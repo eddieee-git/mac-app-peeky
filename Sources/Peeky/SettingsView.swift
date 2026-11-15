@@ -6,6 +6,9 @@ struct SettingsView: View {
     @ObservedObject private var updater = AppUpdater.shared
     @State private var axTrusted = AX.isTrusted
     @State private var search = ""
+    /// "system" | "ko" | "en". 문구는 시작할 때 한 번 정해지므로 바꾸면 다시 열어야 한다.
+    @State private var language = UserDefaults.standard.string(forKey: "language") ?? "system"
+    private let launchLanguage = UserDefaults.standard.string(forKey: "language") ?? "system"
 
     private let poll = Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
 
@@ -18,6 +21,7 @@ struct SettingsView: View {
             itemsSection
             updateSection
             advancedSection
+            AppAboutSections(appName: "Peeky", english: !Localization.isKorean)
         }
         .formStyle(.grouped)
         .searchable(text: $search, placement: .toolbar, prompt: L("항목 검색"))
@@ -76,6 +80,22 @@ struct SettingsView: View {
             .help(L("그룹 단축키에 쓸 보조 키. 1~9는 각 그룹, B는 첫 그룹이에요."))
             Toggle(L("로그인 시 실행"), isOn: Binding(get: { prefs.launchAtLogin },
                                                   set: { prefs.launchAtLogin = $0 }))
+            Picker(L("언어"), selection: $language) {
+                Text(L("시스템 설정 따르기")).tag("system")
+                Text("한국어").tag("ko")
+                Text("English").tag("en")
+            }
+            .onChange(of: language) { _, new in
+                if new == "system" { UserDefaults.standard.removeObject(forKey: "language") }
+                else { UserDefaults.standard.set(new, forKey: "language") }
+            }
+            if language != launchLanguage {
+                HStack {
+                    Text(L("언어를 바꾸면 Peeky를 다시 열어야 적용돼요.")).font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button(L("Peeky 다시 열기")) { AppRelauncher.relaunch() }
+                }
+            }
         }
     }
 

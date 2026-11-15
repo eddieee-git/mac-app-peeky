@@ -1,3 +1,7 @@
+> 문서·UI 규칙은 ../mac-app/STYLE.md를 따른다. 다르게 할 때는 여기에 이유를 적는다.
+
+> 업데이트 코드(`AppUpdater.swift`)는 다섯 앱 공통이다. 여기서 고치지 않고 ../mac-app/shared/AppUpdater.swift를 고친 뒤 ../mac-app/scripts/sync-shared.sh로 복사한다. 이 앱에만 해당하는 값은 `UpdaterSetup.swift`에 있다. 시험할 때는 디버그 빌드에서 `-debugUpdateURL <주소>`, `-debugUpdatePublicKey <키>`, `-debugAppVersion <버전>`을 쓴다.
+
 # Peeky 개발 메모
 
 노치에 가려진 메뉴바 아이콘을 메뉴바 아래 바에 모아 보여 주는 macOS 메뉴바 앱. Swift Package 실행 파일 하나로,
@@ -19,7 +23,7 @@ Xcode 없이 Command Line Tools만으로 빌드한다. Apple 실리콘, macOS 14
 PEEKY_DEBUG=1 ./scripts/build-app.sh    # 디버그 빌드, dmg 없음
 ./scripts/release.sh                    # 점검 → 빌드 → 태그 push → gh release create (dmg + .sig)
 ./scripts/make-signing-cert.sh          # (한 번) 이 Mac 전용 서명 인증서 "Peeky Local Signing"
-swift scripts/make-icon.swift           # Resources/AppIcon.icns, docs/icon.png
+swift scripts/make-icon.swift           # Resources/AppIcon.icns, docs/images/icon.png
 swift scripts/sign-update.swift public  # 업데이트 서명 키의 공개 키 출력 (keygen | public | sign 파일)
 ```
 
@@ -46,7 +50,7 @@ swift scripts/sign-update.swift public  # 업데이트 서명 키의 공개 키 
 dmg 안 앱 이름은 `Peeky.app`, 번들 ID와 버전은 태그와 맞아야 한다.
 
 **업데이트 서명 키**
-- 비밀 키는 저장소 밖 `~/.config/peeky/update-signing.key`(`PEEKY_UPDATE_KEY`로 바꿀 수 있음). 공개 키는 `Updater.publicKey`.
+- 비밀 키는 저장소 밖 `~/.config/peeky/update-signing.key`(`PEEKY_UPDATE_KEY`로 바꿀 수 있음). 공개 키는 `UpdaterSetup.swift`의 `appPublicKey`.
 - `build-app.sh`가 키가 있으면 `.sig`를 만들고, `release.sh`는 `.sig`가 없으면 멈춘다.
 - **키를 잃어버리면 이미 설치된 앱은 새 버전을 자동으로 받지 못한다.** 따로 백업해 둔다.
 
@@ -64,7 +68,7 @@ dmg 안 앱 이름은 `Peeky.app`, 번들 ID와 버전은 태그와 맞아야 �
 | `Preferences.swift` | 설정(UserDefaults): 그룹(그룹별 옵션), 항목별 그룹, 숨김, 순서, 표시, 단축키, 진단 로그 |
 | `SettingsView.swift` | 설정 창(SwiftUI) |
 | `Localization.swift` | `L()`과 영어 사전 |
-| `Updater.swift` | 최신 릴리스 확인 → dmg 내려받아 확인(Ed25519·SHA-256·번들 ID·버전·코드 서명) → 바꿔 넣고 다시 시작 |
+| `AppUpdater.swift`(공통) / `UpdaterSetup.swift` | 최신 릴리스 확인 → dmg 내려받아 확인(Ed25519·SHA-256·번들 ID·버전·코드 서명) → 바꿔 넣고 다시 시작 |
 | `HotKey.swift` | Carbon 전역 단축키(핸들러 하나를 id로 나눠 씀) |
 | `AX.swift`, `AppRelauncher.swift` | 손쉬운 사용 도우미, 권한 요청, 다시 열기 |
 | `SelfTest.swift` | 자체 점검 묶음 |

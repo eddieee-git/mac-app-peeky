@@ -24,6 +24,10 @@ enum Localization {
 
     static let pairs: [(String, String)] = [
         ("%@ 열기", "Open %@"),
+        ("언어", "Language"),
+        ("시스템 설정 따르기", "Follow system"),
+        ("언어를 바꾸면 Peeky를 다시 열어야 적용돼요.", "Reopen Peeky to apply the language."),
+        ("Peeky 다시 열기", "Reopen Peeky"),
         ("숨긴 항목 메뉴바에 펼치기", "Show hidden items in the menu bar"),
         ("메뉴바 항목 다시 숨기기", "Hide menu bar items again"),
         ("새 그룹 추가", "Add group"),
