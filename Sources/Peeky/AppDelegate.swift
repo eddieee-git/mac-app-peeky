@@ -56,7 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                name: NSApplication.didChangeScreenParametersNotification, object: nil)
 
         try? FileManager.default.removeItem(atPath: ItemStore.logPath)
-        ItemStore.log("launch \(Bundle.main.bundlePath) version=\(Updater.shared.currentVersion) axTrusted=\(AX.isTrusted) preflight=\(CGPreflightScreenCaptureAccess())")
+        ItemStore.log("launch \(Bundle.main.bundlePath) version=\(AppUpdater.shared.currentVersion) axTrusted=\(AX.isTrusted) preflight=\(CGPreflightScreenCaptureAccess())")
         ItemStore.shared.checkScreenCapture()
         if !AX.isTrusted || !prefs.hasLaunchedBefore {
             prefs.hasLaunchedBefore = true
@@ -64,7 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !AX.isTrusted { AX.requestTrust() }
         }
         ItemStore.shared.refresh(full: true)
-        Updater.shared.start()
+        AppUpdater.shared.start()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -170,7 +170,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(withTitle: title, action: #selector(menuToggleHidden), keyEquivalent: "").target = self
         }
         menu.addItem(withTitle: L("새 그룹 추가"), action: #selector(menuAddGroup), keyEquivalent: "").target = self
+        menu.addItem(.separator())
         menu.addItem(withTitle: L("설정…"), action: #selector(menuSettings), keyEquivalent: ",").target = self
+        menu.addItem(AppUpdater.shared.makeMenuItem())
         menu.addItem(.separator())
         menu.addItem(withTitle: L("Peeky 종료"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu

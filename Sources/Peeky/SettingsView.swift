@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject private var store = ItemStore.shared
     @ObservedObject private var prefs = Preferences.shared
-    @ObservedObject private var updater = Updater.shared
+    @ObservedObject private var updater = AppUpdater.shared
     @State private var axTrusted = AX.isTrusted
     @State private var search = ""
 
@@ -145,20 +145,7 @@ struct SettingsView: View {
     }
 
     private var updateSection: some View {
-        Section(L("업데이트")) {
-            LabeledContent(L("버전")) { Text(updater.currentVersion).monospacedDigit() }
-            Toggle(L("새 버전이 나오면 자동으로 설치"), isOn: $updater.autoInstall)
-            HStack {
-                Text(updateStatus).foregroundStyle(.secondary)
-                Spacer()
-                if case .available = updater.state {
-                    Button(L("지금 설치")) { updater.installPending() }
-                }
-                Button(L("지금 확인")) { updater.checkNow() }
-                    .disabled(updater.state == .checking)
-            }
-            Link(L("릴리스 노트 보기"), destination: Updater.releasesPage).font(.callout)
-        }
+        AppUpdaterSection(updater: updater)
     }
 
     private var advancedSection: some View {
@@ -175,17 +162,6 @@ struct SettingsView: View {
         } footer: {
             Text(L("권한이 인식되지 않을 때 원인을 찾는 데 써요. ~/Library/Logs/Peeky.log에 권한 상태만 기록하고, 끄면 파일을 지워요."))
                 .font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    private var updateStatus: String {
-        switch updater.state {
-        case .idle: return L("하루에 한 번 GitHub에서 새 버전을 확인해요")
-        case .checking: return L("확인하는 중…")
-        case .upToDate: return L("최신 버전이에요")
-        case .available(let v): return L("새 버전 %@이 있어요", v)
-        case .installing(let v): return L("%@ 설치하는 중… 곧 다시 시작돼요", v)
-        case .failed(let message): return message
         }
     }
 

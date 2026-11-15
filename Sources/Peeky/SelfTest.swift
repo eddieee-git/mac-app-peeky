@@ -11,33 +11,10 @@ enum SelfTest {
     }
 
     static func run() -> Bool {
-        print("버전 비교")
-        expect(Updater.isNewer("0.10.0", than: "0.9.1"), "0.10.0 > 0.9.1")
-        expect(Updater.isNewer("1.0", than: "0.9.9"), "1.0 > 0.9.9")
-        expect(!Updater.isNewer("0.1.0", than: "0.1"), "0.1.0 == 0.1")
-        expect(!Updater.isNewer("0.1.0", than: "0.2.0"), "0.1.0 < 0.2.0")
-
-        print("릴리스 응답 읽기")
-        let json = """
-        {"tag_name":"v0.2.0","assets":[
-          {"name":"Peeky-0.2.0.dmg","browser_download_url":"https://example.com/Peeky-0.2.0.dmg","digest":"sha256:ABC"},
-          {"name":"Peeky-0.2.0.dmg.sig","browser_download_url":"https://example.com/Peeky-0.2.0.dmg.sig"}]}
-        """
-        let release = Updater.parse(Data(json.utf8))
-        expect(release?.version == "0.2.0", "태그에서 v를 뗀 버전")
-        expect(release?.dmg?.lastPathComponent == "Peeky-0.2.0.dmg", "dmg 주소")
-        expect(release?.sha256 == "abc", "SHA-256 소문자")
-        expect(release?.signature?.lastPathComponent == "Peeky-0.2.0.dmg.sig", "서명 파일 주소")
-
-        print("업데이트 서명")
-        let key = Curve25519.Signing.PrivateKey()
-        let publicKey = key.publicKey.rawRepresentation.base64EncodedString()
-        let data = Data("peeky".utf8)
-        let signature = Data(try! key.signature(for: data).base64EncodedString().utf8)
-        expect(Updater.isSigned(data, signature: signature, publicKey: publicKey), "맞는 서명 통과")
-        expect(!Updater.isSigned(Data("other".utf8), signature: signature, publicKey: publicKey), "다른 파일 거부")
-        expect(!Updater.isSigned(data, signature: signature), "다른 키 거부")
-        expect(Data(base64Encoded: Updater.publicKey)?.count == 32, "앱에 넣은 공개 키 형식")
+        print("업데이트 (공통)")
+        let updateFailures = AppUpdater.selfTest(appName: "Peeky", publicKey: AppUpdater.appPublicKey, format: AppUpdater.appSignatureFormat)
+        updateFailures.forEach { expect(false, $0) }
+        expect(updateFailures.isEmpty, "공통 업데이트 점검")
 
         print("번역")
         expect(Localization.duplicateKeys.isEmpty, "사전에 같은 키 없음 \(Localization.duplicateKeys)")
@@ -58,9 +35,6 @@ enum SelfTest {
         print("순서")
         let sorted = Preferences.ordered(["a", "b", "c", "d"], by: ["c", "a"]) { $0 }
         expect(sorted == ["c", "a", "b", "d"], "저장한 순서 먼저, 나머지는 원래 순서")
-
-        print("바꿔 넣을 수 있는 위치")
-        expect(!Updater.canReplace(URL(fileURLWithPath: "/Volumes/Peeky/Peeky.app")), "dmg 안에서는 안 됨")
 
         print(failures == 0 ? "모두 통과" : "실패 \(failures)개")
         return failures == 0
