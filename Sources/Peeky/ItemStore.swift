@@ -191,9 +191,22 @@ final class ItemStore: ObservableObject {
 
     // MARK: - Screen capture of the real icons
 
+    /// 메뉴바에서 숨기기 직전에 부른다. 숨긴 항목은 화면 밖으로 나가 캡처할 수 없으니,
+    /// 아직 보일 때 항목을 다시 읽고 이미지가 없는 것을 캡처해 둔다.
+    func prepareForHiding(completion: @escaping () -> Void) {
+        guard screenCaptureOK, AX.isTrusted else { completion(); return }
+        refresh(captureIDs: []) { [weak self] in
+            guard let self else { completion(); return }
+            self.captureImages(only: nil) {
+                Self.log("hide: captured \(self.images.count) of \(self.items.count) icons before hiding")
+                completion()
+            }
+        }
+    }
+
     /// 이미지가 없거나 크기가 바뀐 항목만 캡처한다. `only`가 있으면 그 항목만 본다.
-    private func captureImages(only: Set<String>?) {
-        guard screenCaptureOK else { return }
+    private func captureImages(only: Set<String>?, completion: (() -> Void)? = nil) {
+        guard screenCaptureOK else { completion?(); return }
         let targets = items.compactMap { item -> (String, CGRect)? in
             guard only?.contains(item.id) ?? true,
                   let f = item.frame, f.width > 1, f.height > 1, !NotchGeometry.isOffScreen(f) else { return nil }
@@ -201,9 +214,10 @@ final class ItemStore: ObservableObject {
                abs(old.width - f.width) < 1, abs(old.height - f.height) < 1 { return nil }
             return (item.id, f)
         }
-        guard !targets.isEmpty else { return }
+        guard !targets.isEmpty else { completion?(); return }
 
         Task {
+            defer { completion?() }
             guard let content = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false) else { return }
             let statusWindows = content.windows.filter { $0.windowLayer == Int(CGWindowLevelForKey(.statusWindow)) }
             let scale = NSScreen.screens.map(\.backingScaleFactor).max() ?? 2

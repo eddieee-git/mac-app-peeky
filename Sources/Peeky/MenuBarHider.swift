@@ -67,9 +67,22 @@ final class MenuBarHider {
         toggle?.button?.toolTip = isCollapsed ? L("숨긴 항목 펼치기") : L("구분선 왼쪽 항목 숨기기")
     }
 
+    /// 숨기기 전에 아이콘을 캡처해 둔 뒤 접는다. 캡처가 늦어도 3초 뒤에는 접는다.
     func collapse() {
-        guard let divider else { return }
+        guard divider != nil else { return }
         cancelRecollapse()
+        var done = false
+        let finish: @MainActor () -> Void = { [weak self] in
+            guard !done else { return }
+            done = true
+            self?.applyCollapse()
+        }
+        ItemStore.shared.prepareForHiding(completion: finish)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { MainActor.assumeIsolated { finish() } }
+    }
+
+    private func applyCollapse() {
+        guard let divider else { return }
         divider.length = Self.collapsedLength
         isCollapsed = true
         updateAppearance()
