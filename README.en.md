@@ -84,7 +84,7 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 | Launch at login | Start automatically |
 | Language | Follow system / 한국어 / English. Reopen Peeky to apply |
 | Check for new versions automatically | Checks GitHub once a day (on by default) |
-| Install new versions automatically | Installs a found update by itself while you aren't using Peeky (off by default) |
+| Install new versions automatically | Installs a found update by itself and relaunches while you aren't using Peeky (on by default) |
 | Keep a diagnostic log | Writes permission status to `~/Library/Logs/Peeky.log` (off by default; turning it off deletes the file) |
 
 ## FAQ
