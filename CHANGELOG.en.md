@@ -2,9 +2,13 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
-## 0.2.1 (2026-11-15)
+## 0.2.2 (2026-11-16)
 
 - Menu bar hiding: a ‹ / › button that stays visible while hidden, a guide when first turned on, and no hiding while a Peeky icon is left of the divider
+- Icons are captured just before hiding, so hidden items keep their real look
+
+## 0.2.1 (2026-11-15)
+
 - Choose the language in Settings: System / 한국어 / English
 - The option for items outside groups is now called “Menu bar only” to make its meaning clear
 - Empty placeholder items from Control Center on macOS 26 are left out of the list
