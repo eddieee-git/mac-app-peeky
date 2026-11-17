@@ -295,7 +295,10 @@ final class TaskbarController: NSObject {
         // Split items into 1–3 rows (in menu bar order), each row filled left → right.
         let items = store.barItems(in: groupID)
         let rowCount = max(1, min(prefs.rowCount(for: groupID), items.count))
-        let perRow = Int((Double(items.count) / Double(rowCount)).rounded(.up))
+        // 설정 버튼(⚙)도 항목처럼 마지막 칸에 놓으므로 칸 수에 하나를 더한다.
+        let gearInStrip = !items.isEmpty
+        let slotCount = items.count + (gearInStrip ? 1 : 0)
+        let perRow = Int((Double(slotCount) / Double(rowCount)).rounded(.up))
         var rowX = [CGFloat](repeating: 0, count: rowCount)
         for (index, item) in items.enumerated() {
             let row = index / max(perRow, 1)
@@ -303,6 +306,16 @@ final class TaskbarController: NSObject {
             button.frame.origin = CGPoint(x: rowX[row], y: CGFloat(row) * (Metrics.itemHeight + Metrics.rowSpacing))
             strip.addSubview(button)
             rowX[row] = button.frame.maxX + Metrics.itemSpacing
+        }
+        settingsButton.removeFromSuperview()
+        if gearInStrip {
+            let row = min(items.count / max(perRow, 1), rowCount - 1)
+            settingsButton.frame = NSRect(x: rowX[row], y: CGFloat(row) * (Metrics.itemHeight + Metrics.rowSpacing),
+                                          width: 22, height: Metrics.itemHeight)
+            strip.addSubview(settingsButton)
+            rowX[row] = settingsButton.frame.maxX + Metrics.itemSpacing
+        } else {
+            background.addSubview(settingsButton)
         }
         let contentWidth = max(0, (rowX.max() ?? 0) - Metrics.itemSpacing)
         let stripHeight = CGFloat(rowCount) * Metrics.itemHeight + CGFloat(rowCount - 1) * Metrics.rowSpacing
@@ -319,7 +332,7 @@ final class TaskbarController: NSObject {
         let stripWidth = emptyText != nil ? emptyLabel.frame.width : min(contentWidth, CGFloat(prefs.maxStripWidth))
         let overflow = contentWidth > stripWidth + 0.5
 
-        // [‹] [ strip ] [›] [⚙]  — arrows only when there is something to scroll to.
+        // [‹] [ strip … ⚙ ] [›]  — arrows only when there is something to scroll to.
         var cx = Metrics.padding
         let midY = panelHeight / 2
         leftButton.isHidden = !overflow
@@ -336,8 +349,12 @@ final class TaskbarController: NSObject {
             rightButton.frame = NSRect(x: cx, y: midY - 11, width: Metrics.arrowWidth, height: 22)
             cx += Metrics.arrowWidth + Metrics.gap
         }
-        settingsButton.frame = NSRect(x: cx, y: midY - 11, width: 22, height: 22)
-        cx += 22 + Metrics.padding
+        if gearInStrip {
+            cx += Metrics.padding - Metrics.gap
+        } else {
+            settingsButton.frame = NSRect(x: cx, y: midY - 11, width: 22, height: 22)
+            cx += 22 + Metrics.padding
+        }
 
         positionPanel(width: cx, height: panelHeight)
         if wasAtEnd { scrollView.scroll(to: scrollView.maxOffset, animated: false) }
