@@ -2,6 +2,11 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.2.3 (2026-11-19)
+
+- The settings (⚙) button in the bar sits in the last slot after the icons
+- Automatic installs are on by default; checking manually installs right away
+
 ## 0.2.2 (2026-11-16)
 
 - Menu bar hiding: a ‹ / › button that stays visible while hidden, a guide when first turned on, and no hiding while a Peeky icon is left of the divider

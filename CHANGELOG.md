@@ -2,6 +2,11 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.2.3 (2026-11-19)
+
+- 바의 설정(⚙) 버튼을 아이콘 맨 뒤 칸에
+- 새 버전 자동 설치를 기본으로 켬, 직접 확인하면 묻지 않고 바로 설치
+
 ## 0.2.2 (2026-11-16)
 
 - 메뉴바 숨기기: 숨겨도 보이는 ‹ / › 버튼, 처음 켤 때는 펼친 채로 안내, Peeky 아이콘이 구분선 왼쪽이면 숨기지 않기
