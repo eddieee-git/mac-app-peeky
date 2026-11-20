@@ -2,6 +2,10 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.3.2 (2026-11-20)
+
+- The clock and Control Center are left out of Peeky bars (and group counts and “Hide all”)
+
 ## 0.3.1 (2026-11-20)
 
 - Without Screen Recording, built-in icons such as Battery and Wi-Fi show a matching symbol

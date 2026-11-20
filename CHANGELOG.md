@@ -2,6 +2,10 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.3.2 (2026-11-20)
+
+- 시계·제어 센터를 Peeky 바에서 빼기(그룹 개수·「모두 숨기기」 포함)
+
 ## 0.3.1 (2026-11-20)
 
 - 화면 기록 권한이 없을 때 배터리·Wi-Fi 같은 macOS 기본 아이콘을 모양에 맞는 기호로
