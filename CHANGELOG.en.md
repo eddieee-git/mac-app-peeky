@@ -2,6 +2,10 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.3.1 (2026-11-20)
+
+- Without Screen Recording, built-in icons such as Battery and Wi-Fi show a matching symbol
+
 ## 0.3.0 (2026-11-20)
 
 - Choose “Show / Hide (· group)” per icon and Peeky moves menu bar icons into place like a ⌘-drag

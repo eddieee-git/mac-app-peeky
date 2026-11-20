@@ -2,6 +2,10 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.3.1 (2026-11-20)
+
+- 화면 기록 권한이 없을 때 배터리·Wi-Fi 같은 macOS 기본 아이콘을 모양에 맞는 기호로
+
 ## 0.3.0 (2026-11-20)
 
 - 아이콘마다 「보이기 / 숨기기(· 그룹)」를 고르면 Peeky가 ⌘ 끌기처럼 메뉴바 아이콘을 옮겨 정리
