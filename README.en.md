@@ -21,7 +21,7 @@
 - **Flip through**: with many icons, use the **‹ ›** arrows, mouse wheel or trackpad, or ← → on the keyboard.
 - **One, two or three rows**: spread the bar over several rows to scroll less.
 - **Groups**: each group gets its own icon in the menu bar and shows only the items you put in it — e.g. "Work" and "System". Rows and what to show can be set per group.
-- **Really hide from the menu bar**: icons moved left of the divider disappear from the menu bar and only show in the Peeky bar.
+- **Really hide from the menu bar**: just choose “Show” or “Hide” for each icon and Peeky rearranges the menu bar for you. Hidden icons are clicked from the Peeky bar.
 - **Drag to reorder**: drag icons inside the bar into any order.
 - **Hover over the notch**: optionally open the bar just by resting the pointer on the notch.
 - **Real icon images**: with Screen Recording permission, items look exactly as they do in the menu bar (otherwise the app icon is shown).
@@ -44,19 +44,21 @@
 
 ## Usage
 
-1. Click the Peeky icon (`‹›`) in the menu bar or press **⌃⌥1**. The bar opens right below the menu bar.
-2. Click an icon in the bar to open that app's menu. Right-click tries the secondary menu.
-3. In settings → **General** → **Icons in the bar**, only icons whose switch is on appear in the Peeky bar. Labels like “Behind notch”, “Hidden” or “No room” tell you why an icon isn't visible in the menu bar right now.
-4. To add groups: settings → **Advanced** → **Groups** → **＋ Add group**. With two or more groups, you pick a group per icon instead of a switch. Each group can have its own name and symbol, and **⋯** sets rows and what to show for that group.
-5. Drag icons in the bar to reorder them. **Reset order** in settings → Advanced goes back to menu bar order.
+1. In settings (⚙︎) → **General** → **Menu bar icons**, choose for each icon:
+   - **Show**: leave it in the menu bar.
+   - **Hide**: take it out of the menu bar and collect it in the Peeky bar. With two or more groups, pick **Hide · group name** to choose which group's bar it goes in.
+2. Turn on **Hide “Hide” icons from the menu bar** at the top, and Peeky moves the icons into place for you. The pointer moves briefly while it does. Whenever you change a choice, Peeky arranges them again.
+3. Click the Peeky icon (`‹›`) in the menu bar or press **⌃⌥1** to open the bar with your hidden icons. Click one there to open its menu.
+4. Labels like “Behind notch”, “Hidden” or “No room” tell you why an icon isn't visible in the menu bar right now. The clock and Control Center can't be moved, so they're “Always shown”.
+5. To add groups: settings → **Advanced** → **Groups** → **＋ Add group**. Each group gets its own Peeky icon in the menu bar, and **⋯** sets rows and what to show for that group.
+6. Drag icons in the bar to reorder them. **Reset order** in settings → Advanced goes back to menu bar order.
 
-### Hiding items from the menu bar
+### How hiding works
 
-1. Settings → **Advanced** → **Menu bar cleanup** → turn on **Hide items from the menu bar**. A divider (╱) and a **›** button appear in the menu bar. Nothing is hidden yet.
-2. Hold ⌘ and drag icons you want to hide to the **left** of the divider. Keep the Peeky icons to its **right**.
-3. Items left of the divider disappear from the menu bar and only show in the Peeky bar. Clicking one in the bar briefly unfolds the menu bar to open its menu, then hides it again once the menu closes.
-4. When you're done, click **›** to hide them. While hidden it turns into **‹**; click it to show them again. The Peeky icon's right-click menu does the same.
-5. If a Peeky icon is left of the divider, Peeky keeps the menu bar unfolded and tells you.
+- Hiding adds a divider (╱) and a **‹ ›** button to the menu bar. Icons **left** of the divider are pushed off-screen.
+- Peeky moves “Hide” icons to the left of the divider and “Show” icons to its right, just like a ⌘-drag. Icons behind the notch can't be grabbed, so Peeky can't move them.
+- **‹** shows the hidden icons briefly and **›** hides them again. Clicking a hidden icon in the bar unfolds the menu bar to open its menu, then hides it again when the menu closes.
+- If things end up in the wrong place, use **Arrange again** in settings → Advanced → Menu bar cleanup.
 
 If the Peeky icon itself is hidden by the notch, ⌘-drag it to the right; the position is remembered. Shortcuts always work.
 
@@ -79,7 +81,7 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 | Rows | One / two / three (per group too) |
 | Open the bar when hovering over the notch | Notched displays only (off by default) |
 | Shortcut | ⌃⌥ / ⌃⌘ / ⌥⌘ / ⌃⇧ / off |
-| Hide items from the menu bar | Hides items left of the divider (off by default) |
+| Hide “Hide” icons from the menu bar | Moves icons as you chose and hides the “Hide” ones from the menu bar (off by default) |
 | Max bar width | Beyond this width, use arrows and scrolling |
 | Launch at login | Start automatically |
 | Language | Follow system / 한국어 / English. Reopen Peeky to apply |
@@ -99,7 +101,7 @@ The Peeky entry in the list may belong to an older build. Remove it with − and
 Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turn off automatic checks in Settings and not even that is sent.
 
 **Icons I hid from the menu bar don't come back.**
-Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show Hidden Icons**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
+Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show Hidden Icons**. Turning off **Hide “Hide” icons from the menu bar** in settings → General removes the divider and brings everything back. Quitting Peeky also unfolds them.
 
 **Does it work on Macs without a notch?**
 Yes — it's still useful for grouping menu bar icons. "Only items hidden by the notch" only matters on a notched display.

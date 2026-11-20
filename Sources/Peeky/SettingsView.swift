@@ -145,14 +145,17 @@ struct SettingsView: View {
 
     private var menuBarSection: some View {
         Section {
-            Toggle(L("메뉴바에서 항목 숨기기"), isOn: $prefs.hideInMenuBar)
+            LabeledContent(L("아이콘 자리가 고른 대로가 아니면")) {
+                Button(L("다시 정리")) { StatusIconCheck.arrange() }
+                    .disabled(!prefs.hideInMenuBar)
+            }
             LabeledContent(L("Peeky 아이콘이 안 보이면")) {
                 Button(L("Peeky 아이콘을 오른쪽 끝으로 옮기기")) { StatusIconCheck.resetPositions() }
             }
         } header: {
             Text(L("메뉴바 정리"))
         } footer: {
-            Text(L("켜면 메뉴바에 구분선(╱)이 생겨요. ⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. 구분선 왼쪽 항목은 메뉴바에서 사라지고 Peeky 바에서만 보여요. Peeky 아이콘은 구분선 오른쪽에 두세요. 구분선 오른쪽의 › 버튼으로 숨기고 ‹ 버튼으로 다시 펼쳐요."))
+            Text(L("메뉴바에서 숨기기를 켜면 구분선(╱)과 ‹ › 버튼이 생겨요. 구분선 왼쪽 아이콘이 숨겨지고, ‹ ›로 잠깐 펼치거나 다시 숨겨요. 노치 뒤에 있어 잡을 수 없는 아이콘은 옮기지 못해요."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -180,6 +183,10 @@ struct SettingsView: View {
 
     private var itemsSection: some View {
         Section {
+            Toggle(isOn: $prefs.hideInMenuBar) {
+                Text(L("「숨기기」 아이콘을 메뉴바에서 숨기기"))
+                Text(L("켜면 Peeky가 아이콘 자리를 옮겨 정리해요. 정리하는 동안 마우스가 잠깐 움직여요."))
+            }
             if !axTrusted {
                 Text(L("손쉬운 사용 권한을 주면 항목 목록이 여기에 나타나요.")).foregroundStyle(.secondary)
             } else if filteredItems.isEmpty {
@@ -189,17 +196,15 @@ struct SettingsView: View {
             }
         } header: {
             HStack {
-                Text(L("바에 보일 아이콘"))
+                Text(L("메뉴바 아이콘"))
                 Spacer()
                 Menu(L("모두")) {
-                    if prefs.groups.count == 1, let only = prefs.groups.first {
-                        Button(L("모두 켜기")) { filteredItems.forEach { prefs.assign($0.id, to: only.id) } }
-                    } else {
-                        ForEach(prefs.groups) { group in
-                            Button(L("모두 %@에", group.name)) { filteredItems.forEach { prefs.assign($0.id, to: group.id) } }
+                    Button(L("모두 보이기")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
+                    ForEach(prefs.groups) { group in
+                        Button(prefs.groups.count == 1 ? L("모두 숨기기") : L("모두 숨기기 · %@", group.name)) {
+                            filteredItems.forEach { prefs.assign($0.id, to: group.id) }
                         }
                     }
-                    Button(L("모두 끄기")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
                 }
                 .fixedSize()
                 Button { store.refresh(full: true) } label: { Image(systemName: "arrow.clockwise") }
@@ -208,9 +213,7 @@ struct SettingsView: View {
             .buttonStyle(.borderless)
             .font(.callout)
         } footer: {
-            Text(prefs.groups.count == 1
-                 ? L("켠 아이콘이 Peeky 바에 보여요. 바에서 누르면 원래 메뉴가 열려요.")
-                 : L("아이콘마다 어느 그룹의 바에 보일지 골라요. 바에서 누르면 원래 메뉴가 열려요."))
+            Text(L("「보이기」는 메뉴바에 그대로 둬요. 「숨기기」는 메뉴바에서 빼고 Peeky 바에 모아요. Peeky 아이콘을 누르면 바가 열리고, 바에서 누르면 원래 메뉴가 열려요."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -341,25 +344,27 @@ struct SettingsView: View {
                     .foregroundStyle(.orange)
                     .help(status.help)
             }
-            if prefs.groups.count == 1, let only = prefs.groups.first {
-                Toggle("", isOn: Binding(get: { prefs.group(for: item.id) != nil },
-                                         set: { prefs.assign(item.id, to: $0 ? only.id : nil) }))
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .help(L("Peeky 바에 보이기"))
+            if item.isFixed {
+                Text(L("항상 보임")).foregroundStyle(.secondary)
+                    .help(L("macOS가 이 아이콘은 옮기지 못하게 해서 늘 메뉴바에 보여요."))
+            } else if prefs.groups.count == 1 {
+                placementPicker(item).pickerStyle(.segmented).fixedSize()
             } else {
-                Picker("", selection: Binding(get: { prefs.group(for: item.id) },
-                                              set: { prefs.assign(item.id, to: $0) })) {
-                    ForEach(prefs.groups) { group in
-                        Label(group.name, systemImage: group.symbol).tag(Optional(group.id))
-                    }
-                    Divider()
-                    Text(L("바에 안 보임")).tag(UUID?.none)
-                }
-                .labelsHidden()
-                .fixedSize()
+                placementPicker(item).pickerStyle(.menu).fixedSize()
             }
         }
+    }
+
+    /// 아이콘마다 「보이기」 또는 「숨기기(· 그룹)」
+    private func placementPicker(_ item: MenuBarItem) -> some View {
+        Picker("", selection: Binding(get: { prefs.group(for: item.id) },
+                                      set: { prefs.assign(item.id, to: $0) })) {
+            Text(L("보이기")).tag(UUID?.none)
+            ForEach(prefs.groups) { group in
+                Text(prefs.groups.count == 1 ? L("숨기기") : L("숨기기 · %@", group.name)).tag(Optional(group.id))
+            }
+        }
+        .labelsHidden()
     }
 
     /// 메뉴바에서 안 보이는 이유를 짧게. 보이면 nil.

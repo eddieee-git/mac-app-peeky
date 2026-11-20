@@ -32,6 +32,11 @@ enum SelfTest {
                                                title: nil, help: nil, appName: "Example", index: 0)
         expect(thirdParty == "Sync", "다른 앱은 설명 그대로")
 
+        print("항목 이름")
+        expect(firstLine("Cloudflare One Client\n\nAttention - Disconnected") == "Cloudflare One Client",
+               "상태가 덧붙은 도움말은 첫 줄만")
+        expect(firstLine("  \n") == nil, "빈 문자열은 없음")
+
         print("순서")
         let sorted = Preferences.ordered(["a", "b", "c", "d"], by: ["c", "a"]) { $0 }
         expect(sorted == ["c", "a", "b", "d"], "저장한 순서 먼저, 나머지는 원래 순서")

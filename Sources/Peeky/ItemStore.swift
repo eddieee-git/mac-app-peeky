@@ -13,6 +13,11 @@ struct MenuBarItem: Identifiable {
     let frame: CGRect?      // global CoreGraphics coordinates
     let appIcon: NSImage?
 
+    /// macOS가 자리를 바꾸지 못하게 하는 아이콘(시계, 제어 센터). 늘 메뉴바 오른쪽 끝에 있다.
+    var isFixed: Bool {
+        bundleID == "com.apple.controlcenter"
+            && (id.hasSuffix("|com.apple.menuextra.clock") || id.hasSuffix("|com.apple.menuextra.controlcenter"))
+    }
     var displayName: String { label == appName ? appName : "\(appName) – \(label)" }
     var isHiddenByNotch: Bool { NotchGeometry.isHidden(frame) }
 }
@@ -155,13 +160,17 @@ final class ItemStore: ObservableObject {
             var usedKeys = Set<String>()
             for (index, child) in AX.children(bar).enumerated() {
                 AXUIElementSetMessagingTimeout(child, 0.5)
-                let identifier = AX.string(child, kAXIdentifierAttribute)
-                let desc = AX.string(child, kAXDescriptionAttribute)
-                let title = AX.string(child, kAXTitleAttribute)
-                let help = AX.string(child, kAXHelpAttribute)
+                // 설명·도움말에 연결 상태 같은 바뀌는 내용을 줄을 바꿔 덧붙이는 앱이 있다(예: "…\n\nDisconnected").
+                // 항목을 늘 같은 것으로 알아보도록 첫 줄만 쓴다.
+                let identifier = firstLine(AX.string(child, kAXIdentifierAttribute))
+                let desc = firstLine(AX.string(child, kAXDescriptionAttribute))
+                let title = firstLine(AX.string(child, kAXTitleAttribute))
+                let help = firstLine(AX.string(child, kAXHelpAttribute))
 
                 // Prefer stable attributes for the key: titles (e.g. a clock) can change constantly.
                 var key = identifier ?? desc ?? help ?? title ?? "#\(index)"
+                // 입력 소스 아이콘은 설명이 지금 입력기 이름(예: "2-Set Korean")이라 바뀔 때마다 달라진다.
+                if app.bundleID == "com.apple.TextInputMenuAgent" { key = "#\(index)" }
                 if usedKeys.contains(key) { key += "#\(index)" }
                 usedKeys.insert(key)
 
@@ -170,7 +179,7 @@ final class ItemStore: ObservableObject {
                 if identifier == nil, desc == nil, title == nil, help == nil,
                    frame.map({ $0.width < 1 || $0.height < 1 }) ?? true { continue }
                 if UserDefaults.standard.bool(forKey: "diagnosticLog") {
-                    log("item \(app.bundleID) [\(index)] id=\(identifier ?? "-") desc=\(desc ?? "-") title=\(title ?? "-") help=\(help ?? "-")")
+                    log("item \(app.bundleID) [\(index)] id=\(identifier ?? "-") desc=\(desc ?? "-") title=\(title ?? "-") help=\(help ?? "-") x=\(Int(frame?.minX ?? -1))")
                 }
                 let label = SystemItemNames.label(bundleID: app.bundleID, identifier: identifier,
                                                   description: desc, title: title, help: help,
@@ -244,6 +253,13 @@ final class ItemStore: ObservableObject {
             if !captured.isEmpty { self.images.merge(captured) { _, new in new } }
         }
     }
+}
+
+/// 첫 줄만, 앞뒤 공백 없이. 비면 nil.
+func firstLine(_ text: String?) -> String? {
+    guard let line = text?.split(whereSeparator: \.isNewline).first?.trimmingCharacters(in: .whitespaces),
+          !line.isEmpty else { return nil }
+    return line
 }
 
 private func distance(_ a: CGRect, _ b: CGRect) -> CGFloat {

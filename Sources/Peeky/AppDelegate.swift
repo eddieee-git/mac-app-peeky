@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var refreshWork: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
     private let prefs = Preferences.shared
+    private var isArranging = false
 
     private static let numberKeys = [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
                                      kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9]
@@ -47,16 +48,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             ItemStore.log("status icons hidden=\(StatusIconCheck.hiddenGroupNames())")
             // `open -a Peeky --args --reset-icons`: 아이콘을 못 찾을 때 셸에서 자리를 되돌린다.
             if CommandLine.arguments.contains("--reset-icons") { StatusIconCheck.resetPositions() }
+            if CommandLine.arguments.contains("--arrange") { StatusIconCheck.arrange() }
         }
         hider.onBlocked = { [weak self] in self?.showHiderBlocked() }
         hider.onRightClick = { [weak self] item in self?.showMenu(for: nil, on: item) }
-        // 시작할 때는 바로 접고, 설정에서 새로 켰을 때는 펼친 채로 두어 아이콘을 옮길 수 있게 한다.
+        StatusIconCheck.arrange = { [weak self] in self?.arrangeMenuBar(collapseAfter: true) }
+        // 시작할 때는 바로 접는다. 설정에서 새로 켜면 고른 대로 아이콘을 옮긴 뒤 접는다.
         hider.setEnabled(prefs.hideInMenuBar)
         prefs.$hideInMenuBar
             .dropFirst()
             .sink { [weak self] enabled in
                 self?.hider.setEnabled(enabled, collapseNow: false)
-                if enabled { self?.showHiderGuide() }
+                if enabled { self?.arrangeMenuBar(collapseAfter: true) }
+            }
+            .store(in: &cancellables)
+        // 아이콘마다 「보이기 / 숨기기」를 바꾸면 잠시 뒤 한 번에 다시 정리한다.
+        Publishers.Merge(prefs.$assignments.map { _ in () }, prefs.$excludedIDs.map { _ in () })
+            .dropFirst(2)
+            .debounce(for: .seconds(1), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                guard let self, self.prefs.hideInMenuBar else { return }
+                self.arrangeMenuBar(collapseAfter: false)
             }
             .store(in: &cancellables)
         prefs.$hoverToOpen
@@ -98,12 +110,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: Menu bar hiding
 
-    private func showHiderGuide() {
-        let alert = NSAlert()
-        alert.messageText = L("메뉴바에 구분선(╱)이 생겼어요")
-        alert.informativeText = L("⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. Peeky 아이콘은 구분선 오른쪽에 두세요. 다 옮겼으면 구분선 오른쪽의 › 버튼을 눌러 숨겨요.")
-        NSApp.activate(ignoringOtherApps: true)
-        alert.runModal()
+    /// 「숨기기」로 고른 아이콘은 구분선 왼쪽, 「보이기」는 오른쪽에 오도록 하나씩 옮긴다.
+    /// 옮길 때마다 자리가 바뀌므로 매번 다시 읽는다. 노치 뒤나 화면 밖이라 잡을 수 없는 아이콘은 건너뛴다.
+    private func arrangeMenuBar(collapseAfter: Bool) {
+        guard hider.isEnabled, AX.isTrusted, !isArranging else { return }
+        isArranging = true
+        let wasCollapsed = hider.isCollapsed
+        hider.expand()
+        var tried = Set<String>()
+        var moved = 0
+
+        func finish() {
+            isArranging = false
+            ItemStore.log("arrange: moved \(moved)")
+            if collapseAfter || wasCollapsed { hider.collapse() }
+        }
+        func step() {
+            ItemStore.shared.refresh(full: true) { [self] in
+                guard tried.count < 40, let divider = hider.dividerFrame, let toggle = hider.toggleFrame,
+                      let (id, move) = nextMove(divider: divider, toggle: toggle, skipping: tried) else {
+                    finish()
+                    return
+                }
+                tried.insert(id)
+                moved += 1
+                ItemMover.perform([move]) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { MainActor.assumeIsolated { step() } }
+                }
+            }
+        }
+        // 펼친 뒤 메뉴바가 자리를 잡을 시간을 준다.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { MainActor.assumeIsolated { step() } }
+    }
+
+    private func nextMove(divider: NSRect, toggle: NSRect, skipping: Set<String>) -> (String, ItemMover.Move)? {
+        for item in ItemStore.shared.items where !skipping.contains(item.id) && !item.isFixed {
+            guard let frame = item.frame, frame.width > 1, !NotchGeometry.isHidden(frame) else { continue }
+            let wantsHidden = prefs.group(for: item.id) != nil
+            let isLeft = frame.midX < divider.midX
+            if wantsHidden && !isLeft { return (item.id, .init(from: frame, toX: divider.minX - 3)) }
+            if !wantsHidden && isLeft { return (item.id, .init(from: frame, toX: toggle.maxX + 3)) }
+        }
+        return nil
     }
 
     private func showHiderBlocked() {

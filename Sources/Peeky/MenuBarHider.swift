@@ -25,6 +25,9 @@ final class MenuBarHider {
     var onRightClick: ((NSStatusItem) -> Void)?
 
     var isEnabled: Bool { divider != nil }
+    /// 구분선과 ‹ › 버튼의 지금 자리(AppKit 좌표, x는 CG와 같다).
+    var dividerFrame: NSRect? { divider?.button?.window?.frame }
+    var toggleFrame: NSRect? { toggle?.button?.window?.frame }
 
     /// `collapseNow`가 false면 펼친 채로 구분선만 만든다(처음 켰을 때 아이콘을 옮길 수 있게).
     func setEnabled(_ enabled: Bool, collapseNow: Bool = true) {
@@ -229,6 +232,8 @@ enum StatusIconCheck {
     static var groupItems: () -> [(name: String, item: NSStatusItem)] = { [] }
     /// Peeky 아이콘·구분선·‹› 버튼을 처음 자리(오른쪽 끝 가까이, 그룹 → ‹› → 구분선 순)로 되돌린다.
     static var resetPositions: () -> Void = {}
+    /// 「보이기 / 숨기기」에 맞게 메뉴바 아이콘을 다시 옮긴다.
+    static var arrange: () -> Void = {}
 
     static func hiddenGroupNames() -> [String] {
         groupItems().filter { isHidden($0.item) }.map(\.name)
