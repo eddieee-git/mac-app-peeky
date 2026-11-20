@@ -57,12 +57,28 @@ enum SystemItemNames {
         return nil
     }
 
+    /// 메뉴바 아이콘을 띄우는 도우미 프로세스의 이름 대신 쓸 앱 이름.
+    static let helperAppNames: [String: String] = [
+        "org.pqrs.Karabiner-Console-User-Server": "Karabiner-Elements",
+        "org.pqrs.Karabiner-Menu": "Karabiner-Elements",
+        "com.apple.TextInputMenuAgent": "입력 소스",
+        "com.apple.Spotlight": "Spotlight",
+    ]
+
+    /// 앱이 붙였지만 뜻이 없는 이름. 이런 이름이면 앱 이름을 쓴다.
+    static let genericNames: Set<String> = ["menu", "item", "status", "statusitem", "status item", "menubar", "icon", "button"]
+
+    static func appName(bundleID: String, fallback: String) -> String {
+        helperAppNames[bundleID].map { L($0) } ?? fallback
+    }
+
     /// 항목에 보여 줄 이름을 고른다.
     static func label(bundleID: String, identifier: String?, description: String?, title: String?,
                       help: String?, appName: String, index: Int) -> String {
         let isApple = bundleID.hasPrefix("com.apple.")
         if isApple, let identifier, let name = match(identifier) { return L(name) }
-        if let text = description ?? title ?? help { return text }
+        if bundleID == "com.apple.TextInputMenuAgent" { return L("입력 소스") }
+        if let text = description ?? title ?? help, !genericNames.contains(text.lowercased()) { return text }
         if isApple {
             // 이름도 식별자도 없는 기본 항목: 같은 이름이 여러 줄 반복되지 않게 번호를 붙인다.
             if let identifier { return prettify(identifier) }

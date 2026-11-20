@@ -17,6 +17,7 @@ final class MenuBarHider {
     private var toggle: NSStatusItem?
     private var recollapseMonitor: Any?
     private var recollapseWork: DispatchWorkItem?
+    private var menuWatch: Timer?
     private(set) var isCollapsed = false
     /// 접었을 때 화면 밖으로 밀려나면 안 되는 Peeky 자신의 상태 아이콘들.
     var protectedItems: () -> [NSStatusItem] = { [] }
@@ -150,12 +151,34 @@ final class MenuBarHider {
 
     private func scheduleRecollapse() {
         cancelRecollapse()
-        // 메뉴가 열린 동안에는 펼쳐 둔다. 다음 클릭(메뉴 고르기·닫기) 뒤에 접는다.
-        recollapseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown]) { [weak self] _ in
-            Task { @MainActor in self?.recollapseSoon(after: 0.8) }
+        // 열린 메뉴가 닫히면 바로 접는다. 메뉴 창은 화면 기록 권한 없이도 창 목록에서 층(level)으로 알아볼 수 있다.
+        var sawMenu = false
+        menuWatch = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if Self.menuIsOpen() {
+                    sawMenu = true
+                } else if sawMenu {
+                    self.recollapseSoon(after: 0.2)
+                }
+            }
+        }
+        // 메뉴가 아니라 창이나 팝오버를 여는 앱도 있다: 다음 마우스 클릭 뒤에 접는다.
+        recollapseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, !Self.menuIsOpen() else { return }
+                self.recollapseSoon(after: 0.8)
+            }
         }
         // 아무것도 하지 않으면 잠시 뒤에 접는다.
         recollapseSoon(after: 20)
+    }
+
+    private static func menuIsOpen() -> Bool {
+        let level = Int(CGWindowLevelForKey(.popUpMenuWindow))
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] ?? []
+        return windows.contains { ($0[kCGWindowLayer as String] as? Int) == level }
     }
 
     private func recollapseSoon(after delay: TimeInterval) {
@@ -168,6 +191,8 @@ final class MenuBarHider {
     private func cancelRecollapse() {
         recollapseWork?.cancel()
         recollapseWork = nil
+        menuWatch?.invalidate()
+        menuWatch = nil
         if let recollapseMonitor { NSEvent.removeMonitor(recollapseMonitor) }
         recollapseMonitor = nil
     }
@@ -201,6 +226,8 @@ enum StatusIconCheck {
     static var resetPositions: () -> Void = {}
     /// 「보이기 / 숨기기」에 맞게 메뉴바 아이콘을 다시 옮긴다.
     static var arrange: () -> Void = {}
+    /// 「보이기」 아이콘을 맨 오른쪽(시계·제어 센터 바로 왼쪽)으로 옮긴다. 자리가 모자라도 가장 오래 보인다.
+    static var bringToFront: (String) -> Void = { _ in }
 
     static func hiddenGroupNames() -> [String] {
         groupItems().filter { isHidden($0.item) }.map(\.name)

@@ -18,7 +18,7 @@
 ## Features
 
 - **Click hidden icons**: a bar drops down below the menu bar, and even icons hidden behind the notch open their real menus.
-- **Flip through**: with many icons, use the **‹ ›** arrows, mouse wheel or trackpad, or ← → on the keyboard.
+- **Flip through**: with many icons, use the **‹ ›** arrows, mouse wheel or trackpad, or ← → on the keyboard, and press Return to open the selected icon.
 - **One, two or three rows**: spread the bar over several rows to scroll less.
 - **Groups**: each group gets its own icon in the menu bar and shows only the items you put in it — e.g. "Work" and "System". Rows and what to show can be set per group.
 - **Really hide from the menu bar**: just choose “Show” or “Hide” for each icon and Peeky rearranges the menu bar for you. Hidden icons are clicked from the Peeky bar.
@@ -66,7 +66,8 @@ If the Peeky icon itself is hidden by the notch, ⌘-drag it to the right; the p
 |---|---|
 | ⌃⌥1 – ⌃⌥9 | Toggle the bar for group 1–9 |
 | ⌃⌥B | Toggle the first group's bar |
-| ← → | (while the bar is open) scroll left/right |
+| ← → ↑ ↓ | (while the bar is open) select an icon |
+| Return / Space | Open the selected icon's menu |
 | esc | Close the bar |
 
 The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off, in settings → **Shortcut**.

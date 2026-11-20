@@ -38,6 +38,13 @@ enum SelfTest {
         expect(SystemItemNames.symbol(bundleID: "com.apple.controlcenter", texts: [nil, "Wi‑Fi", "Wi-Fi"]) == "wifi", "Wi-Fi 모양")
         expect(SystemItemNames.symbol(bundleID: "com.example.app", texts: ["battery"]) == nil, "다른 앱은 앱 아이콘 그대로")
 
+        expect(SystemItemNames.label(bundleID: "org.pqrs.Karabiner-Console-User-Server", identifier: nil, description: nil,
+                                     title: "menu", help: nil, appName: "Karabiner-Elements", index: 0) == "Karabiner-Elements",
+               "뜻 없는 이름(menu)은 앱 이름으로")
+        expect(SystemItemNames.label(bundleID: "com.apple.TextInputMenuAgent", identifier: nil, description: "2-Set Korean",
+                                     title: nil, help: nil, appName: "TextInputMenuAgent", index: 0) == L("입력 소스"),
+               "입력 소스 이름")
+
         print("항목 이름")
         expect(firstLine("Cloudflare One Client\n\nAttention - Disconnected") == "Cloudflare One Client",
                "상태가 덧붙은 도움말은 첫 줄만")

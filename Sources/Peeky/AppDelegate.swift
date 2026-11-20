@@ -51,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hider.onBlocked = { [weak self] in self?.showHiderBlocked() }
         hider.onRightClick = { [weak self] item in self?.showMenu(for: nil, on: item) }
         StatusIconCheck.arrange = { [weak self] in self?.arrangeMenuBar(collapseAfter: true) }
+        StatusIconCheck.bringToFront = { [weak self] id in self?.bringToFront(id) }
         // 시작할 때는 바로 접는다. 설정에서 새로 켜면 고른 대로 아이콘을 옮긴 뒤 접는다.
         hider.setEnabled(prefs.hideInMenuBar)
         prefs.$hideInMenuBar
@@ -138,8 +139,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if collapseAfter || wasCollapsed { hider.collapse() }
             if interrupted { retryArrangeLater(collapseAfter: collapseAfter) } else { arrangeRetries = 0 }
         }
+        var firstScan = true
         func step(recheckedMissing: Bool = false) {
-            ItemStore.shared.refresh(full: true) { [self] in
+            // 처음 한 번만 모든 앱을 훑고, 그다음부터는 아이콘이 있는 앱만 다시 읽는다(빠르다).
+            let full = firstScan
+            firstScan = false
+            ItemStore.shared.refresh(full: full) { [self] in
                 if userIsBusy() { finish(interrupted: true); return }
                 let items = ItemStore.shared.items
                 guard let divider = hider.dividerFrame, let toggle = hider.toggleFrame else { finish(interrupted: false); return }
@@ -176,6 +181,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { MainActor.assumeIsolated { step() } }
     }
 
+    /// 「보이기」 아이콘 하나를 시계·제어 센터 바로 왼쪽으로 옮긴다. macOS는 자리가 모자라면 왼쪽부터 숨기므로
+    /// 오른쪽에 있을수록 오래 보인다.
+    private func bringToFront(_ id: String) {
+        guard AX.isTrusted, !isArranging, NSEvent.pressedMouseButtons == 0 else { return }
+        ItemStore.shared.refresh(full: true) { [self] in
+            let items = ItemStore.shared.items
+            guard let item = items.first(where: { $0.id == id }), let frame = item.frame,
+                  !NotchGeometry.isHidden(frame),
+                  let anchor = items.filter(\.isFixed).compactMap(\.frame).min(by: { $0.minX < $1.minX }),
+                  frame.maxX < anchor.minX - 2 else {
+                ItemStore.log("bring-to-front: skipped \(id)")
+                return
+            }
+            if prefs.hideInMenuBar, !hider.menuBarIsVisible { return }
+            ItemMover.perform([.init(from: frame, toX: anchor.minX - 3)]) {
+                MainActor.assumeIsolated { ItemStore.shared.refresh(full: false) }
+            }
+        }
+    }
+
     /// 사용자가 마우스를 쓰고 있었거나 메뉴바가 가려져 있었으면 조금 뒤 다시 한다(몇 번까지만).
     private func retryArrangeLater(collapseAfter: Bool) {
         guard arrangeRetries < 6 else { arrangeRetries = 0; return }
@@ -192,8 +217,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func nextMove(in items: [MenuBarItem], divider: NSRect, toggle: NSRect, skipping: Set<String>)
         -> (move: (MenuBarItem, ItemMover.Move)?, blocked: Set<String>) {
         var blocked = Set<String>()
+        // 화면이 여러 개면 메뉴바도 여럿이다. Peeky의 ‹ › 버튼이 있는 화면의 아이콘만 옮긴다.
+        let menuScreen = NSScreen.screens.first { $0.frame.minX <= toggle.midX && toggle.midX < $0.frame.maxX }
         for item in items where !skipping.contains(item.id) && !item.isFixed {
             guard let frame = item.frame, frame.width > 1 else { continue }
+            if let menuScreen, frame.midX >= menuScreen.frame.minX, frame.midX < menuScreen.frame.maxX {
+                // 같은 화면. 아래에서 계속.
+            } else if !NotchGeometry.isOffScreen(frame) {
+                continue   // 다른 화면의 메뉴바에 있는 아이콘
+            }
             let wantsHidden = prefs.group(for: item.id) != nil
             let isLeft = frame.midX < divider.midX
             guard wantsHidden != isLeft else { continue }

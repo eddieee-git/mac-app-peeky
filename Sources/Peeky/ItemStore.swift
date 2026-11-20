@@ -86,7 +86,8 @@ final class ItemStore: ObservableObject {
             .filter { $0.processIdentifier != myPID && !$0.isTerminated && (scanAll || known.contains($0.processIdentifier)) }
             .map { AppInfo(pid: $0.processIdentifier,
                            bundleID: $0.bundleIdentifier ?? "pid.\($0.processIdentifier)",
-                           name: $0.localizedName ?? $0.bundleIdentifier ?? "?",
+                           name: SystemItemNames.appName(bundleID: $0.bundleIdentifier ?? "",
+                                                         fallback: $0.localizedName ?? $0.bundleIdentifier ?? "?"),
                            icon: $0.icon) }
 
         scanQueue.async {

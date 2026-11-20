@@ -68,6 +68,14 @@ final class ItemButton: NSButton {
     var onDragMoved: ((NSEvent) -> Void)?
     var onDragEnded: (() -> Void)?
     private var tracking: NSTrackingArea?
+    private var isHovered = false { didSet { updateBackground() } }
+    /// 키보드(← →)로 고른 아이콘.
+    var isSelected = false { didSet { updateBackground() } }
+
+    private func updateBackground() {
+        layer?.backgroundColor = isSelected ? NSColor.controlAccentColor.withAlphaComponent(0.35).cgColor
+            : isHovered ? NSColor.labelColor.withAlphaComponent(0.13).cgColor : nil
+    }
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -89,13 +97,9 @@ final class ItemButton: NSButton {
         tracking = area
     }
 
-    override func mouseEntered(with event: NSEvent) {
-        layer?.backgroundColor = NSColor.labelColor.withAlphaComponent(0.13).cgColor
-    }
+    override func mouseEntered(with event: NSEvent) { isHovered = true }
 
-    override func mouseExited(with event: NSEvent) {
-        layer?.backgroundColor = nil
-    }
+    override func mouseExited(with event: NSEvent) { isHovered = false }
 
     override func rightMouseDown(with event: NSEvent) {
         onRightClick?()
@@ -110,7 +114,7 @@ final class ItemButton: NSButton {
             if next.type == .leftMouseDragged {
                 if !dragging, hypot(next.locationInWindow.x - start.x, next.locationInWindow.y - start.y) > 4 {
                     dragging = true
-                    layer?.backgroundColor = nil
+                    isHovered = false
                     onDragBegan?()
                 }
                 if dragging { onDragMoved?(next) }
@@ -155,6 +159,10 @@ final class TaskbarController: NSObject {
     private let leftButton = NSButton()
     private let rightButton = NSButton()
     private let settingsButton = NSButton()
+    /// 지금 바에 놓인 아이콘 버튼(바 순서대로)과 키보드로 고른 위치.
+    private var itemButtons: [ItemButton] = []
+    private var selectedIndex: Int?
+    private var perRowCount = 1
     private let emptyLabel = NSTextField(labelWithString: "")
 
     private var anchorRightX: CGFloat?
@@ -242,6 +250,7 @@ final class TaskbarController: NSObject {
 
     func show(group: UUID, anchor: NSRect?) {
         groupID = group
+        selectedIndex = nil
         let mouse = NSEvent.mouseLocation
         if let anchor, let screen = NSScreen.screens.first(where: { $0.frame.intersects(anchor) }),
            !NotchGeometry.isHidden(CGRect(x: anchor.minX, y: 0, width: anchor.width, height: 1)) {
@@ -296,10 +305,13 @@ final class TaskbarController: NSObject {
         let items = store.barItems(in: groupID)
         let rowCount = max(1, min(prefs.rowCount(for: groupID), items.count))
         let perRow = Int((Double(items.count) / Double(rowCount)).rounded(.up))
+        perRowCount = max(perRow, 1)
+        itemButtons = []
         var rowX = [CGFloat](repeating: 0, count: rowCount)
         for (index, item) in items.enumerated() {
             let row = index / max(perRow, 1)
             let button = makeButton(for: item)
+            itemButtons.append(button)
             button.frame.origin = CGPoint(x: rowX[row], y: CGFloat(row) * (Metrics.itemHeight + Metrics.rowSpacing))
             strip.addSubview(button)
             rowX[row] = button.frame.maxX + Metrics.itemSpacing
@@ -347,6 +359,9 @@ final class TaskbarController: NSObject {
         }
 
         positionPanel(width: cx, height: panelHeight)
+        // 다시 그린 뒤에도 고른 아이콘을 표시한다(없어졌으면 지운다).
+        if let index = selectedIndex, !itemButtons.indices.contains(index) { selectedIndex = nil }
+        for (i, button) in itemButtons.enumerated() { button.isSelected = i == selectedIndex }
         if wasAtEnd { scrollView.scroll(to: scrollView.maxOffset, animated: false) }
         updateArrows()
     }
@@ -474,12 +489,43 @@ final class TaskbarController: NSObject {
         rebuild()
     }
 
+    /// ← → ↑ ↓로 아이콘을 고르고 Return·Space로 연다. 고른 아이콘이 안 보이면 그쪽으로 넘긴다.
     private func handleKey(_ event: NSEvent) -> Bool {
         switch event.keyCode {
-        case 53: hide(); return true            // esc
-        case 123: scrollLeft(); return true     // ←
-        case 124: scrollRight(); return true    // →
+        case 53: hide(); return true                         // esc
+        case 123: moveSelection(by: -1); return true         // ←
+        case 124: moveSelection(by: 1); return true          // →
+        case 126: moveSelection(by: -perRowCount); return true   // ↑
+        case 125: moveSelection(by: perRowCount); return true    // ↓
+        case 36, 49, 76:                                     // Return, Space, Enter
+            guard let index = selectedIndex, itemButtons.indices.contains(index) else { return false }
+            itemClicked(itemButtons[index])
+            return true
         default: return false
+        }
+    }
+
+    private func moveSelection(by delta: Int) {
+        guard !itemButtons.isEmpty else { return }
+        let next: Int
+        if let current = selectedIndex {
+            next = min(max(0, current + delta), itemButtons.count - 1)
+        } else {
+            next = delta < 0 ? itemButtons.count - 1 : 0
+        }
+        select(next)
+    }
+
+    private func select(_ index: Int?) {
+        selectedIndex = index
+        for (i, button) in itemButtons.enumerated() { button.isSelected = i == index }
+        guard let index, itemButtons.indices.contains(index) else { return }
+        let frame = itemButtons[index].frame
+        let visible = scrollView.contentView.bounds
+        if frame.minX < visible.minX {
+            scrollView.scroll(to: frame.minX - 8, animated: true)
+        } else if frame.maxX > visible.maxX {
+            scrollView.scroll(to: frame.maxX - visible.width + 8, animated: true)
         }
     }
 }

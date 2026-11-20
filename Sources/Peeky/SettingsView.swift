@@ -12,7 +12,9 @@ struct SettingsView: View {
     @State private var language = UserDefaults.standard.string(forKey: "language") ?? "system"
     private let launchLanguage = UserDefaults.standard.string(forKey: "language") ?? "system"
 
-    private let poll = Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
+    /// 권한·아이콘 가려짐은 Peeky가 앞으로 올 때 바로 다시 보고, 그 밖에는 가끔만 확인한다.
+    private let poll = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    @AppStorage("onboardingDone") private var onboardingDone = false
 
     @State private var tab = 0
 
@@ -20,6 +22,7 @@ struct SettingsView: View {
         TabView(selection: $tab) {
             Form {
                 if !hiddenIcons.isEmpty { hiddenIconSection }
+                if !onboardingDone { onboardingSection }
                 permissionsSection
                 itemsSection
                 generalSection
@@ -46,18 +49,54 @@ struct SettingsView: View {
             store.refresh(full: true)
             hiddenIcons = StatusIconCheck.hiddenGroupNames()
         }
-        .onReceive(poll) { _ in
+        .onReceive(poll) { _ in recheck() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in recheck() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in recheck() }
+        .onReceive(store.$items) { _ in
             let hidden = StatusIconCheck.hiddenGroupNames()
             if hidden != hiddenIcons { hiddenIcons = hidden }
-            let nowTrusted = AX.isTrusted
-            if nowTrusted != axTrusted {
-                axTrusted = nowTrusted
-                store.refresh(full: true)
-            }
+        }
+    }
+
+    private func recheck() {
+        let hidden = StatusIconCheck.hiddenGroupNames()
+        if hidden != hiddenIcons { hiddenIcons = hidden }
+        let nowTrusted = AX.isTrusted
+        if nowTrusted != axTrusted {
+            axTrusted = nowTrusted
+            store.refresh(full: true)
         }
     }
 
     // MARK: Sections
+
+    /// 처음 쓰는 사람을 위한 세 단계. 닫으면 다시 나오지 않는다.
+    private var onboardingSection: some View {
+        Section {
+            onboardingStep(1, L("손쉬운 사용 권한 허용하기"), done: axTrusted)
+            onboardingStep(2, L("아래 「메뉴바 아이콘」에서 숨길 아이콘을 「숨기기」로 고르기"),
+                           done: store.items.contains { !$0.isFixed && prefs.group(for: $0.id) != nil })
+            onboardingStep(3, L("「숨기기」 아이콘을 메뉴바에서 숨기기 켜기"), done: prefs.hideInMenuBar)
+        } header: {
+            HStack {
+                Text(L("시작하기"))
+                Spacer()
+                Button(L("닫기")) { onboardingDone = true }.buttonStyle(.borderless).font(.callout)
+            }
+        } footer: {
+            Text(L("다 했으면 메뉴바의 Peeky 아이콘을 눌러 보세요. 숨긴 아이콘이 바에 모여 있어요."))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func onboardingStep(_ number: Int, _ text: String, done: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: done ? "checkmark.circle.fill" : "\(number).circle")
+                .foregroundStyle(done ? .green : .secondary)
+                .font(.title3)
+            Text(text).foregroundStyle(done ? .secondary : .primary)
+        }
+    }
 
     private var hiddenIconSection: some View {
         Section {
@@ -211,6 +250,8 @@ struct SettingsView: View {
         } footer: {
             Text(L("「보이기」는 메뉴바에 그대로 둬요. 「숨기기」는 메뉴바에서 빼고 Peeky 바에 모아요. Peeky 아이콘을 누르면 바가 열리고, 바에서 누르면 원래 메뉴가 열려요."))
                 .font(.caption).foregroundStyle(.secondary)
+            Text(L("자리가 모자라면 macOS는 왼쪽 아이콘부터 숨겨요. 꼭 보여야 하는 「보이기」 아이콘은 오른쪽 클릭 → 맨 오른쪽으로 옮기기를 고르세요."))
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 
@@ -317,6 +358,16 @@ struct SettingsView: View {
 
     @ViewBuilder
     private func itemRow(_ item: MenuBarItem) -> some View {
+        itemRowContent(item)
+            .contextMenu {
+                if !item.isFixed, prefs.group(for: item.id) == nil {
+                    Button(L("맨 오른쪽으로 옮기기 (가장 오래 보이게)")) { StatusIconCheck.bringToFront(item.id) }
+                }
+            }
+    }
+
+    @ViewBuilder
+    private func itemRowContent(_ item: MenuBarItem) -> some View {
         HStack(spacing: 10) {
             itemIcon(item).frame(width: 34, height: 20)
             VStack(alignment: .leading, spacing: 1) {
