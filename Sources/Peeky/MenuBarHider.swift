@@ -21,6 +21,8 @@ final class MenuBarHider {
     var protectedItems: () -> [NSStatusItem] = { [] }
     /// Peeky 아이콘이 구분선 왼쪽에 있어서 접기를 되돌렸을 때 부른다.
     var onBlocked: (() -> Void)?
+    /// ‹ › 버튼이나 구분선을 오른쪽 클릭했을 때 메뉴를 띄운다.
+    var onRightClick: ((NSStatusItem) -> Void)?
 
     var isEnabled: Bool { divider != nil }
 
@@ -33,14 +35,16 @@ final class MenuBarHider {
             let toggle = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
             toggle.autosaveName = Self.toggleAutosaveName
             toggle.button?.target = self
-            toggle.button?.action = #selector(toggleClicked)
+            toggle.button?.action = #selector(toggleClicked(_:))
+            toggle.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
             self.toggle = toggle
 
             let item = NSStatusBar.system.statusItem(withLength: Self.expandedLength)
             item.autosaveName = Self.autosaveName
             item.button?.appearsDisabled = true
             item.button?.target = self
-            item.button?.action = #selector(toggleClicked)
+            item.button?.action = #selector(toggleClicked(_:))
+            item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
             item.button?.toolTip = L("Peeky 구분선 — 이 왼쪽의 항목은 메뉴바에서 숨겨요. 누르면 펼치기/접기")
             divider = item
             updateAppearance()
@@ -119,7 +123,11 @@ final class MenuBarHider {
         updateAppearance()
     }
 
-    @objc private func toggleClicked() {
+    @objc private func toggleClicked(_ sender: NSStatusBarButton) {
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            let item = [toggle, divider].compactMap { $0 }.first { $0.button === sender }
+            if let item, let onRightClick { onRightClick(item); return }
+        }
         isCollapsed ? expand() : collapse()
     }
 

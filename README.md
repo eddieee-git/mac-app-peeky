@@ -106,7 +106,7 @@ Peeky 아이콘 자체가 노치에 가려지면 ⌘를 누른 채 오른쪽으�
 
 ## 지우기
 
-1. 메뉴바 Peeky 아이콘 오른쪽 클릭 → **Peeky 종료**
+1. 메뉴바 Peeky 아이콘(또는 ‹ › 버튼, 구분선)을 오른쪽 클릭 → **Peeky 종료**
 2. 응용 프로그램 폴더에서 Peeky를 휴지통으로
 3. (선택) 설정까지 지우려면 `defaults delete com.eddieee.Peeky`, 권한 기록은 `tccutil reset All com.eddieee.Peeky`
 

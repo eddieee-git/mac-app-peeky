@@ -106,7 +106,7 @@ Yes — it's still useful for grouping menu bar icons. "Only items hidden by the
 
 ## Uninstall
 
-1. Right-click the Peeky icon → **Quit Peeky**
+1. Right-click the Peeky icon (or the ‹ › button or the divider) → **Quit Peeky**
 2. Move Peeky from Applications to the Trash
 3. (Optional) `defaults delete com.eddieee.Peeky` for settings, `tccutil reset All com.eddieee.Peeky` for permission records
 

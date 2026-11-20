@@ -49,6 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if CommandLine.arguments.contains("--reset-icons") { StatusIconCheck.resetPositions() }
         }
         hider.onBlocked = { [weak self] in self?.showHiderBlocked() }
+        hider.onRightClick = { [weak self] item in self?.showMenu(for: nil, on: item) }
         // 시작할 때는 바로 접고, 설정에서 새로 켰을 때는 펼친 채로 두어 아이콘을 옮길 수 있게 한다.
         hider.setEnabled(prefs.hideInMenuBar)
         prefs.$hideInMenuBar
@@ -206,7 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
         guard let raw = sender.identifier?.rawValue, let group = UUID(uuidString: raw) else { return }
         if NSApp.currentEvent?.type == .rightMouseUp {
-            showMenu(for: group)
+            showMenu(for: group, on: statusItems[group])
         } else {
             toggleBar(group: group)
         }
@@ -216,14 +217,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         taskbar.toggle(group: group, anchor: statusItems[group]?.button?.window?.frame)
     }
 
-    private func showMenu(for group: UUID) {
-        guard let statusItem = statusItems[group] else { return }
+    /// 그룹 아이콘이나 ‹ › 버튼·구분선을 오른쪽 클릭했을 때의 메뉴. `group`이 없으면 그룹마다 열기 항목을 둔다.
+    private func showMenu(for group: UUID?, on statusItem: NSStatusItem?) {
+        guard let statusItem else { return }
         taskbar.hide()
         let menu = NSMenu()
-        let name = prefs.groups.first { $0.id == group }?.name ?? "Peeky"
-        let open = menu.addItem(withTitle: L("%@ 열기", name), action: #selector(menuOpenGroup(_:)), keyEquivalent: "")
-        open.target = self
-        open.representedObject = group
+        for g in prefs.groups where group == nil || g.id == group {
+            let open = menu.addItem(withTitle: L("%@ 열기", g.name), action: #selector(menuOpenGroup(_:)), keyEquivalent: "")
+            open.target = self
+            open.representedObject = g.id
+        }
         if hider.isEnabled {
             let title = hider.isCollapsed ? L("숨긴 항목 메뉴바에 펼치기") : L("메뉴바 항목 다시 숨기기")
             menu.addItem(withTitle: title, action: #selector(menuToggleHidden), keyEquivalent: "").target = self
