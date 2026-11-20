@@ -55,7 +55,8 @@ final class ItemStore: ObservableObject {
     func barItems(in group: UUID?) -> [MenuBarItem] {
         guard let group else { return [] }
         let prefs = Preferences.shared
-        let list = items.filter { prefs.group(for: $0.id) == group }
+        // 시계·제어 센터는 늘 메뉴바에 보이므로 바에 넣지 않는다.
+        let list = items.filter { !$0.isFixed && prefs.group(for: $0.id) == group }
         return prefs.ordered(list) { $0.id }
     }
 

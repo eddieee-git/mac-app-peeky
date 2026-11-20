@@ -198,7 +198,7 @@ struct SettingsView: View {
                     Button(L("모두 보이기")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
                     ForEach(prefs.groups) { group in
                         Button(prefs.groups.count == 1 ? L("모두 숨기기") : L("모두 숨기기 · %@", group.name)) {
-                            filteredItems.forEach { prefs.assign($0.id, to: group.id) }
+                            filteredItems.filter { !$0.isFixed }.forEach { prefs.assign($0.id, to: group.id) }
                         }
                     }
                 }
@@ -279,7 +279,7 @@ struct SettingsView: View {
                 .labelsHidden()
                 .textFieldStyle(.roundedBorder)
                 .frame(maxWidth: .infinity)
-            Text(L("%ld개", store.items.filter { prefs.group(for: $0.id) == group.id }.count))
+            Text(L("%ld개", store.items.filter { !$0.isFixed && prefs.group(for: $0.id) == group.id }.count))
                 .monospacedDigit().foregroundStyle(.secondary)
             if prefs.hotKeyModifiers != .off, index < 9 {
                 Text("\(prefs.hotKeyModifiers.symbol)\(index + 1)").font(.caption).foregroundStyle(.secondary)
