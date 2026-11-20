@@ -156,7 +156,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showHiderBlocked() {
         let alert = NSAlert()
-        alert.messageText = L("Peeky 아이콘이 구분선 왼쪽에 있어요")
+        alert.messageText = L("Peeky 아이콘이 › 버튼 왼쪽에 있어요")
         alert.informativeText = L("이대로 숨기면 Peeky 아이콘도 사라져서 펼쳐 두었어요. Peeky 아이콘을 오른쪽 끝으로 옮긴 뒤 › 버튼을 다시 눌러 주세요.")
         alert.addButton(withTitle: L("Peeky 아이콘을 오른쪽 끝으로 옮기기"))
         alert.addButton(withTitle: L("닫기"))

@@ -155,7 +155,7 @@ struct SettingsView: View {
         } header: {
             Text(L("메뉴바 정리"))
         } footer: {
-            Text(L("메뉴바에서 숨기기를 켜면 구분선(╱)과 ‹ › 버튼이 생겨요. 구분선 왼쪽 아이콘이 숨겨지고, ‹ ›로 잠깐 펼치거나 다시 숨겨요. 노치 뒤에 있어 잡을 수 없는 아이콘은 옮기지 못해요."))
+            Text(L("메뉴바에서 숨기기를 켜면 › 버튼이 생겨요. › 오른쪽 아이콘은 늘 보이고, 왼쪽 아이콘은 숨겨져요. ‹ ›를 누르면 잠깐 펼치거나 다시 숨겨요. 노치 뒤에 있어 잡을 수 없는 아이콘은 옮기지 못해요."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -374,7 +374,7 @@ struct SettingsView: View {
             return (L("노치 뒤"), L("노치에 가려 메뉴바에서 안 보여요. Peeky 바에서 누를 수 있어요."))
         }
         if prefs.hideInMenuBar {
-            return (L("숨겨 둠"), L("구분선 왼쪽에 있어서 메뉴바에서 숨겼어요. Peeky 바에서 누를 수 있어요."))
+            return (L("숨겨 둠"), L("› 버튼 왼쪽에 있어서 메뉴바에서 숨겼어요. Peeky 바에서 누를 수 있어요."))
         }
         return (L("자리 없음"), L("메뉴바에 자리가 없어 밀려났어요. Peeky 바에서 누를 수 있어요."))
     }

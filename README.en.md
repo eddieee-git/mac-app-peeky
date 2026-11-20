@@ -55,8 +55,8 @@
 
 ### How hiding works
 
-- Hiding adds a divider (╱) and a **‹ ›** button to the menu bar. Icons **left** of the divider are pushed off-screen.
-- Peeky moves “Hide” icons to the left of the divider and “Show” icons to its right, just like a ⌘-drag. Icons behind the notch can't be grabbed, so Peeky can't move them.
+- Hiding adds a **›** button to the menu bar. Icons **to its right** always show; icons **to its left** are hidden.
+- Peeky moves “Hide” icons to the left of › and “Show” icons to its right, just like a ⌘-drag. Icons behind the notch can't be grabbed, so Peeky can't move them.
 - **‹** shows the hidden icons briefly and **›** hides them again. Clicking a hidden icon in the bar unfolds the menu bar to open its menu, then hides it again when the menu closes.
 - If things end up in the wrong place, use **Arrange again** in settings → Advanced → Menu bar cleanup.
 
@@ -101,14 +101,14 @@ The Peeky entry in the list may belong to an older build. Remove it with − and
 Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turn off automatic checks in Settings and not even that is sent.
 
 **Icons I hid from the menu bar don't come back.**
-Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show Hidden Icons**. Turning off **Hide “Hide” icons from the menu bar** in settings → General removes the divider and brings everything back. Quitting Peeky also unfolds them.
+Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show Hidden Icons**. Turning off **Hide “Hide” icons from the menu bar** in settings → General removes the › button and brings everything back. Quitting Peeky also unfolds them.
 
 **Does it work on Macs without a notch?**
 Yes — it's still useful for grouping menu bar icons. "Only items hidden by the notch" only matters on a notched display.
 
 ## Uninstall
 
-1. Right-click the Peeky icon (or the ‹ › button or the divider) → **Quit Peeky**
+1. Right-click the Peeky icon (or the ‹ › button) → **Quit Peeky**
 2. Move Peeky from Applications to the Trash
 3. (Optional) `defaults delete com.eddieee.Peeky` for settings, `tccutil reset All com.eddieee.Peeky` for permission records
 

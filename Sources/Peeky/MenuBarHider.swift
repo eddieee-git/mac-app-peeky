@@ -8,7 +8,8 @@ final class MenuBarHider {
     static let autosaveName = "PeekyDivider"
     static let toggleAutosaveName = "PeekyToggle"
     private static let collapsedLength: CGFloat = 10_000
-    private static let expandedLength: CGFloat = 14
+    /// 펼쳤을 때 구분선은 거의 자리를 차지하지 않는 투명한 막대다. 기준은 › 버튼으로 보여 준다.
+    private static let expandedLength: CGFloat = 1
 
     /// 늘어나는 구분선. 접으면 그림이 긴 막대 가운데(화면 밖)로 가므로 그림을 지운다.
     private var divider: NSStatusItem?
@@ -48,7 +49,6 @@ final class MenuBarHider {
             item.button?.target = self
             item.button?.action = #selector(toggleClicked(_:))
             item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            item.button?.toolTip = L("Peeky 구분선 — 이 왼쪽의 항목은 메뉴바에서 숨겨요. 누르면 펼치기/접기")
             divider = item
             updateAppearance()
             if collapseNow {
@@ -66,12 +66,9 @@ final class MenuBarHider {
     }
 
     private func updateAppearance() {
-        divider?.button?.image = isCollapsed ? nil
-            : NSImage(systemSymbolName: "line.diagonal", accessibilityDescription: L("Peeky 구분선"))?
-                .withSymbolConfiguration(.init(pointSize: 11, weight: .regular))
         toggle?.button?.image = NSImage(systemSymbolName: isCollapsed ? "chevron.compact.left" : "chevron.compact.right",
                                         accessibilityDescription: isCollapsed ? L("숨긴 항목 펼치기") : L("숨기기"))
-        toggle?.button?.toolTip = isCollapsed ? L("숨긴 항목 펼치기") : L("구분선 왼쪽 항목 숨기기")
+        toggle?.button?.toolTip = isCollapsed ? L("숨긴 항목 펼치기") : L("› 왼쪽 아이콘 숨기기")
     }
 
     /// 숨기기 전에 아이콘을 캡처해 둔 뒤 접는다. 캡처가 늦어도 3초 뒤에는 접는다.
