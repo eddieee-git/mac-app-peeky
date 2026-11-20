@@ -217,24 +217,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         taskbar.toggle(group: group, anchor: statusItems[group]?.button?.window?.frame)
     }
 
-    /// 그룹 아이콘이나 ‹ › 버튼·구분선을 오른쪽 클릭했을 때의 메뉴. `group`이 없으면 그룹마다 열기 항목을 둔다.
+    /// 그룹 아이콘이나 ‹ › 버튼·구분선을 오른쪽 클릭했을 때의 메뉴. 꼭 필요한 것만 둔다:
+    /// 바 열기, (숨기기를 켰을 때) 펼치기/숨기기, 설정, (새 버전이 있을 때) 업데이트, 종료.
     private func showMenu(for group: UUID?, on statusItem: NSStatusItem?) {
         guard let statusItem else { return }
         taskbar.hide()
         let menu = NSMenu()
-        for g in prefs.groups where group == nil || g.id == group {
-            let open = menu.addItem(withTitle: L("%@ 열기", g.name), action: #selector(menuOpenGroup(_:)), keyEquivalent: "")
+        let shown = prefs.groups.filter { group == nil || $0.id == group }
+        for g in shown {
+            let title = prefs.groups.count == 1 ? L("바 열기") : L("%@ 열기", g.name)
+            let open = menu.addItem(withTitle: title, action: #selector(menuOpenGroup(_:)), keyEquivalent: "")
             open.target = self
             open.representedObject = g.id
         }
         if hider.isEnabled {
-            let title = hider.isCollapsed ? L("숨긴 항목 메뉴바에 펼치기") : L("메뉴바 항목 다시 숨기기")
+            let title = hider.isCollapsed ? L("숨긴 아이콘 보이기") : L("아이콘 다시 숨기기")
             menu.addItem(withTitle: title, action: #selector(menuToggleHidden), keyEquivalent: "").target = self
         }
-        menu.addItem(withTitle: L("새 그룹 추가"), action: #selector(menuAddGroup), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: L("설정…"), action: #selector(menuSettings), keyEquivalent: ",").target = self
-        menu.addItem(AppUpdater.shared.makeMenuItem())
+        if AppUpdater.shared.available != nil { menu.addItem(AppUpdater.shared.makeMenuItem()) }
         menu.addItem(.separator())
         menu.addItem(withTitle: L("Peeky 종료"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
@@ -248,11 +250,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func menuToggleHidden() {
         hider.isCollapsed ? hider.expand() : hider.collapse()
-    }
-
-    @objc private func menuAddGroup() {
-        prefs.addGroup()
-        showSettings()
     }
 
     @objc private func menuSettings() { showSettings() }

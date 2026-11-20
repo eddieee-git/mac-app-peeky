@@ -14,19 +14,32 @@ struct SettingsView: View {
 
     private let poll = Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
 
+    @State private var tab = 0
+
     var body: some View {
-        Form {
-            if !hiddenIcons.isEmpty { hiddenIconSection }
-            permissionsSection
-            barSection
-            menuBarSection
-            groupsSection
-            itemsSection
-            updateSection
-            advancedSection
-            AppAboutSections(appName: "Peeky", english: !Localization.isKorean)
+        TabView(selection: $tab) {
+            Form {
+                if !hiddenIcons.isEmpty { hiddenIconSection }
+                permissionsSection
+                itemsSection
+                generalSection
+                updateSection
+                AppAboutSections(appName: "Peeky", english: !Localization.isKorean)
+            }
+            .formStyle(.grouped)
+            .tabItem { Text(L("기본 설정")) }
+            .tag(0)
+
+            Form {
+                barSection
+                menuBarSection
+                groupsSection
+                advancedSection
+            }
+            .formStyle(.grouped)
+            .tabItem { Text(L("고급")) }
+            .tag(1)
         }
-        .formStyle(.grouped)
         .searchable(text: $search, placement: .toolbar, prompt: L("항목 검색"))
         .frame(minWidth: 500, minHeight: 560)
         .onAppear {
@@ -99,6 +112,16 @@ struct SettingsView: View {
                 ForEach(HotKeyModifiers.allCases) { Text($0.title).tag($0) }
             }
             .help(L("그룹 단축키에 쓸 보조 키. 1~9는 각 그룹, B는 첫 그룹이에요."))
+            LabeledContent(L("바 안의 순서")) {
+                Button(L("순서 초기화")) { prefs.itemOrder = [] }
+                    .disabled(prefs.itemOrder.isEmpty)
+                    .help(L("바에서 끌어 바꾼 순서를 메뉴바 순서로 되돌려요"))
+            }
+        }
+    }
+
+    private var generalSection: some View {
+        Section(L("일반")) {
             Toggle(L("로그인 시 실행"), isOn: Binding(get: { prefs.launchAtLogin },
                                                   set: { prefs.launchAtLogin = $0 }))
             Picker(L("언어"), selection: $language) {
@@ -166,26 +189,28 @@ struct SettingsView: View {
             }
         } header: {
             HStack {
-                Text(L("항목별 그룹"))
+                Text(L("바에 보일 아이콘"))
                 Spacer()
-                Menu(L("모두 옮기기")) {
-                    ForEach(prefs.groups) { group in
-                        Button(group.name) { filteredItems.forEach { prefs.assign($0.id, to: group.id) } }
+                Menu(L("모두")) {
+                    if prefs.groups.count == 1, let only = prefs.groups.first {
+                        Button(L("모두 켜기")) { filteredItems.forEach { prefs.assign($0.id, to: only.id) } }
+                    } else {
+                        ForEach(prefs.groups) { group in
+                            Button(L("모두 %@에", group.name)) { filteredItems.forEach { prefs.assign($0.id, to: group.id) } }
+                        }
                     }
-                    Divider()
-                    Button(L("메뉴바에만")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
+                    Button(L("모두 끄기")) { filteredItems.forEach { prefs.assign($0.id, to: nil) } }
                 }
                 .fixedSize()
-                Button(L("순서 초기화")) { prefs.itemOrder = [] }
-                    .disabled(prefs.itemOrder.isEmpty)
-                    .help(L("바에서 끌어 바꾼 순서를 메뉴바 순서로 되돌려요"))
                 Button { store.refresh(full: true) } label: { Image(systemName: "arrow.clockwise") }
                     .help(L("새로고침"))
             }
             .buttonStyle(.borderless)
             .font(.callout)
         } footer: {
-            Text(L("각 항목이 어느 그룹 바에 보일지 고르세요. 「메뉴바에만」은 Peeky 바에 넣지 않고 메뉴바에 그대로 둬요. 바의 항목을 클릭하면 실제 메뉴가 열리고, 오른쪽 클릭은 보조 메뉴를 시도해요. 바에서 항목을 끌면 순서를 바꿀 수 있어요."))
+            Text(prefs.groups.count == 1
+                 ? L("켠 아이콘이 Peeky 바에 보여요. 바에서 누르면 원래 메뉴가 열려요.")
+                 : L("아이콘마다 어느 그룹의 바에 보일지 골라요. 바에서 누르면 원래 메뉴가 열려요."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -204,7 +229,7 @@ struct SettingsView: View {
                 .buttonStyle(.link)
             }
         } header: {
-            Text(L("고급"))
+            Text(L("문제 해결"))
         } footer: {
             Text(L("권한이 인식되지 않을 때 원인을 찾는 데 써요. ~/Library/Logs/Peeky.log에 권한 상태만 기록하고, 끄면 파일을 지워요."))
                 .font(.caption).foregroundStyle(.secondary)
@@ -308,24 +333,45 @@ struct SettingsView: View {
                 }
             }
             Spacer()
-            if item.isHiddenByNotch {
-                Text(L("가려짐"))
+            if let status = status(of: item) {
+                Text(status.text)
                     .font(.caption2.weight(.medium))
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Capsule().fill(Color.orange.opacity(0.18)))
                     .foregroundStyle(.orange)
+                    .help(status.help)
             }
-            Picker("", selection: Binding(get: { prefs.group(for: item.id) },
-                                          set: { prefs.assign(item.id, to: $0) })) {
-                ForEach(prefs.groups) { group in
-                    Label(group.name, systemImage: group.symbol).tag(Optional(group.id))
+            if prefs.groups.count == 1, let only = prefs.groups.first {
+                Toggle("", isOn: Binding(get: { prefs.group(for: item.id) != nil },
+                                         set: { prefs.assign(item.id, to: $0 ? only.id : nil) }))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .help(L("Peeky 바에 보이기"))
+            } else {
+                Picker("", selection: Binding(get: { prefs.group(for: item.id) },
+                                              set: { prefs.assign(item.id, to: $0) })) {
+                    ForEach(prefs.groups) { group in
+                        Label(group.name, systemImage: group.symbol).tag(Optional(group.id))
+                    }
+                    Divider()
+                    Text(L("바에 안 보임")).tag(UUID?.none)
                 }
-                Divider()
-                Text(L("메뉴바에만")).tag(UUID?.none)
+                .labelsHidden()
+                .fixedSize()
             }
-            .labelsHidden()
-            .fixedSize()
         }
+    }
+
+    /// 메뉴바에서 안 보이는 이유를 짧게. 보이면 nil.
+    private func status(of item: MenuBarItem) -> (text: String, help: String)? {
+        guard item.isHiddenByNotch else { return nil }
+        if let frame = item.frame, !NotchGeometry.isOffScreen(frame) {
+            return (L("노치 뒤"), L("노치에 가려 메뉴바에서 안 보여요. Peeky 바에서 누를 수 있어요."))
+        }
+        if prefs.hideInMenuBar {
+            return (L("숨겨 둠"), L("구분선 왼쪽에 있어서 메뉴바에서 숨겼어요. Peeky 바에서 누를 수 있어요."))
+        }
+        return (L("자리 없음"), L("메뉴바에 자리가 없어 밀려났어요. Peeky 바에서 누를 수 있어요."))
     }
 
     @ViewBuilder

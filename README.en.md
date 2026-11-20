@@ -46,13 +46,13 @@
 
 1. Click the Peeky icon (`‹›`) in the menu bar or press **⌃⌥1**. The bar opens right below the menu bar.
 2. Click an icon in the bar to open that app's menu. Right-click tries the secondary menu.
-3. In settings, **Group per item** picks which group each icon appears in. **Menu bar only** keeps it out of the Peeky bars and leaves it in the menu bar.
-4. To add groups: settings → **Groups** → **＋ Add group**. Each group can have its own name and symbol, and **⋯** sets rows and what to show for that group.
-5. Drag icons in the bar to reorder them. **Reset order** in settings goes back to menu bar order.
+3. In settings → **General** → **Icons in the bar**, only icons whose switch is on appear in the Peeky bar. Labels like “Behind notch”, “Hidden” or “No room” tell you why an icon isn't visible in the menu bar right now.
+4. To add groups: settings → **Advanced** → **Groups** → **＋ Add group**. With two or more groups, you pick a group per icon instead of a switch. Each group can have its own name and symbol, and **⋯** sets rows and what to show for that group.
+5. Drag icons in the bar to reorder them. **Reset order** in settings → Advanced goes back to menu bar order.
 
 ### Hiding items from the menu bar
 
-1. Settings → **Menu bar cleanup** → turn on **Hide items from the menu bar**. A divider (╱) and a **›** button appear in the menu bar. Nothing is hidden yet.
+1. Settings → **Advanced** → **Menu bar cleanup** → turn on **Hide items from the menu bar**. A divider (╱) and a **›** button appear in the menu bar. Nothing is hidden yet.
 2. Hold ⌘ and drag icons you want to hide to the **left** of the divider. Keep the Peeky icons to its **right**.
 3. Items left of the divider disappear from the menu bar and only show in the Peeky bar. Clicking one in the bar briefly unfolds the menu bar to open its menu, then hides it again once the menu closes.
 4. When you're done, click **›** to hide them. While hidden it turns into **‹**; click it to show them again. The Peeky icon's right-click menu does the same.
@@ -90,16 +90,16 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 ## FAQ
 
 **I can't see the Peeky icon in the menu bar.**
-It's behind the notch or there's no room for it. Open Peeky again from Applications: the settings window opens with a notice at the top. **⌃⌥1** opens the bar; hold ⌘ and drag other icons left to make room, then move the Peeky icon to the right end. **Move Peeky icons to the right end** in Settings → Menu bar cleanup puts them back in place. On macOS 26, also check that Peeky is allowed in System Settings → Menu Bar.
+It's behind the notch or there's no room for it. Open Peeky again from Applications: the settings window opens with a notice at the top. **⌃⌥1** opens the bar; hold ⌘ and drag other icons left to make room, then move the Peeky icon to the right end. **Move Peeky icons to the right end** in Settings → Advanced → Menu bar cleanup puts them back in place. On macOS 26, also check that Peeky is allowed in System Settings → Menu Bar.
 
 **I turned the permission on but settings still shows orange.**
-The Peeky entry in the list may belong to an older build. Remove it with − and click Allow again (turn on **Keep a diagnostic log** under Advanced to see what Peeky detects), or reset with `tccutil reset Accessibility com.eddieee.Peeky` (`ScreenCapture` for Screen Recording). Screen Recording takes effect after **Reopen**.
+The Peeky entry in the list may belong to an older build. Remove it with − and click Allow again (turn on **Keep a diagnostic log** under Advanced → Troubleshooting to see what Peeky detects), or reset with `tccutil reset Accessibility com.eddieee.Peeky` (`ScreenCapture` for Screen Recording). Screen Recording takes effect after **Reopen**.
 
 **What does it send?**
 Only one request to GitHub's public API asking for the latest release when checking for updates. Menu bar items and screen contents are never sent anywhere. Turn off automatic checks in Settings and not even that is sent.
 
 **Icons I hid from the menu bar don't come back.**
-Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show hidden items in the menu bar**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
+Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show Hidden Icons**. Turning off **Hide items from the menu bar** removes the divider and brings everything back. Quitting Peeky also unfolds them.
 
 **Does it work on Macs without a notch?**
 Yes — it's still useful for grouping menu bar icons. "Only items hidden by the notch" only matters on a notched display.
