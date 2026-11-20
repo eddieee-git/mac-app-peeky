@@ -39,6 +39,8 @@ final class ItemStore: ObservableObject {
     /// Whether screen capture really works. CGPreflightScreenCaptureAccess() can report false on
     /// recent macOS even when the user turned Peeky on, so this is confirmed with a real ScreenCaptureKit call.
     @Published private(set) var screenCaptureOK = CGPreflightScreenCaptureAccess()
+    /// 지난 정리에서 옮겨야 했지만 잡지 못한 아이콘(노치 뒤 등).
+    @Published var unmovableIDs: Set<String> = []
     private var checkingCapture = false
 
     private let scanQueue = DispatchQueue(label: "peeky.scan", qos: .userInitiated)
@@ -92,6 +94,7 @@ final class ItemStore: ObservableObject {
             DispatchQueue.main.async {
                 self.items = found
                 self.knownPIDs = Set(found.map(\.pid))
+                if scanAll, !found.isEmpty { Preferences.shared.adoptVisibleDefault(knownIDs: found.map(\.id)) }
                 self.isScanning = false
                 self.flushCompletions()
                 self.captureImages(only: captureIDs)
@@ -260,6 +263,24 @@ final class ItemStore: ObservableObject {
             }
             if !captured.isEmpty { self.images.merge(captured) { _, new in new } }
         }
+    }
+}
+
+extension MenuBarItem {
+    /// 메뉴바에서 안 보이는 이유를 짧게(설정 목록 꼬리표와 바의 마우스 설명). 보이면 nil.
+    @MainActor
+    func status(hiding: Bool, unmovable: Bool) -> (text: String, help: String)? {
+        if unmovable {
+            return (L("옮기지 못함"), L("노치 뒤에 있어 Peeky가 잡을 수 없었어요. 메뉴바 아이콘을 줄이면 다음 정리 때 옮겨요."))
+        }
+        guard isHiddenByNotch else { return nil }
+        if let frame, !NotchGeometry.isOffScreen(frame) {
+            return (L("노치 뒤"), L("노치에 가려 메뉴바에서 안 보여요. Peeky 바에서 누를 수 있어요."))
+        }
+        if hiding {
+            return (L("숨겨 둠"), L("› 버튼 왼쪽에 있어서 메뉴바에서 숨겼어요. Peeky 바에서 누를 수 있어요."))
+        }
+        return (L("자리 없음"), L("메뉴바에 자리가 없어 밀려났어요. Peeky 바에서 누를 수 있어요."))
     }
 }
 

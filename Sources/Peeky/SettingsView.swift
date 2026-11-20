@@ -357,16 +357,8 @@ struct SettingsView: View {
         .labelsHidden()
     }
 
-    /// 메뉴바에서 안 보이는 이유를 짧게. 보이면 nil.
     private func status(of item: MenuBarItem) -> (text: String, help: String)? {
-        guard item.isHiddenByNotch else { return nil }
-        if let frame = item.frame, !NotchGeometry.isOffScreen(frame) {
-            return (L("노치 뒤"), L("노치에 가려 메뉴바에서 안 보여요. Peeky 바에서 누를 수 있어요."))
-        }
-        if prefs.hideInMenuBar {
-            return (L("숨겨 둠"), L("› 버튼 왼쪽에 있어서 메뉴바에서 숨겼어요. Peeky 바에서 누를 수 있어요."))
-        }
-        return (L("자리 없음"), L("메뉴바에 자리가 없어 밀려났어요. Peeky 바에서 누를 수 있어요."))
+        item.status(hiding: prefs.hideInMenuBar, unmovable: store.unmovableIDs.contains(item.id))
     }
 
     @ViewBuilder

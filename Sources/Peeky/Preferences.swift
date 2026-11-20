@@ -94,6 +94,21 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(diagnosticLog, forKey: "diagnosticLog") }
     }
 
+    /// 고르지 않은 아이콘을 「보이기」로 다룰지. 0.3.2까지는 첫 그룹(「숨기기」)이었다.
+    /// 그 전부터 쓰던 설정은 첫 전체 스캔 때 지금 아이콘들을 「숨기기 · 첫 그룹」으로 적어 둔 뒤 켠다.
+    private(set) var newIconsVisible: Bool
+
+    func adoptVisibleDefault(knownIDs: [String]) {
+        guard !newIconsVisible else { return }
+        if let first = groups.first?.id {
+            var updated = assignments
+            for id in knownIDs where !excludedIDs.contains(id) && updated[id] == nil { updated[id] = first }
+            if updated != assignments { assignments = updated }
+        }
+        newIconsVisible = true
+        defaults.set(true, forKey: "newIconsVisible")
+    }
+
     var hasLaunchedBefore: Bool {
         get { defaults.bool(forKey: "hasLaunchedBefore") }
         set { defaults.set(newValue, forKey: "hasLaunchedBefore") }
@@ -125,6 +140,9 @@ final class Preferences: ObservableObject {
         hideInMenuBar = defaults.object(forKey: "hideInMenuBar") as? Bool ?? false
         hotKeyModifiers = HotKeyModifiers(rawValue: defaults.object(forKey: "hotKeyModifiers") as? Int ?? 0) ?? .controlOption
         diagnosticLog = defaults.object(forKey: "diagnosticLog") as? Bool ?? false
+        // 처음 설치했으면 바로 새 방식. 예전부터 쓰던 Mac은 첫 스캔에서 옮겨 적는다.
+        newIconsVisible = defaults.object(forKey: "newIconsVisible") as? Bool
+            ?? !defaults.bool(forKey: "hasLaunchedBefore")
     }
 
     // MARK: Groups
@@ -133,7 +151,9 @@ final class Preferences: ObservableObject {
     func group(for itemID: String) -> UUID? {
         guard !excludedIDs.contains(itemID) else { return nil }
         if let g = assignments[itemID], groups.contains(where: { $0.id == g }) { return g }
-        return groups.first?.id
+        // 지운 그룹에 있던 아이콘은 첫 그룹으로. 아직 고르지 않은 새 아이콘은 「보이기」.
+        if assignments[itemID] != nil || !newIconsVisible { return groups.first?.id }
+        return nil
     }
 
     /// Puts an item into a group, or turns it off when `group` is nil.

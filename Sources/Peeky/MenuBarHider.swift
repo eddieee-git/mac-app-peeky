@@ -29,6 +29,12 @@ final class MenuBarHider {
     /// 구분선과 ‹ › 버튼의 지금 자리(AppKit 좌표, x는 CG와 같다).
     var dividerFrame: NSRect? { divider?.button?.window?.frame }
     var toggleFrame: NSRect? { toggle?.button?.window?.frame }
+    /// 메뉴바가 지금 화면에 보이는지. 전체 화면 앱이나 「메뉴 막대 자동 숨김」으로 가려졌으면 false.
+    var menuBarIsVisible: Bool {
+        guard let window = toggle?.button?.window, window.isVisible,
+              window.occlusionState.contains(.visible) else { return false }
+        return NSScreen.screens.contains { $0.frame.contains(NSPoint(x: window.frame.midX, y: window.frame.midY)) }
+    }
 
     /// `collapseNow`가 false면 펼친 채로 구분선만 만든다(처음 켰을 때 아이콘을 옮길 수 있게).
     func setEnabled(_ enabled: Bool, collapseNow: Bool = true) {

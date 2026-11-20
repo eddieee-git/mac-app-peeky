@@ -384,7 +384,8 @@ final class TaskbarController: NSObject {
             width = Metrics.fallbackIconSize + 12
         }
         button.frame.size = NSSize(width: width, height: Metrics.itemHeight)
-        button.toolTip = item.displayName + (item.isHiddenByNotch ? L("  (가려짐)") : "") + L("\n끌어서 순서 바꾸기")
+        let status = item.status(hiding: prefs.hideInMenuBar, unmovable: store.unmovableIDs.contains(item.id))
+        button.toolTip = item.displayName + (status.map { "  (\($0.text))" } ?? "") + L("\n끌어서 순서 바꾸기")
         button.setAccessibilityLabel(item.displayName)
         button.target = self
         button.action = #selector(itemClicked(_:))
