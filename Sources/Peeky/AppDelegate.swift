@@ -42,8 +42,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return [] }
             return self.prefs.groups.compactMap { group in self.statusItems[group.id].map { (group.name, $0) } }
         }
+        StatusIconCheck.resetPositions = { [weak self] in self?.resetIconPositions() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             ItemStore.log("status icons hidden=\(StatusIconCheck.hiddenGroupNames())")
+            // `open -a Peeky --args --reset-icons`: 아이콘을 못 찾을 때 셸에서 자리를 되돌린다.
+            if CommandLine.arguments.contains("--reset-icons") { StatusIconCheck.resetPositions() }
         }
         hider.onBlocked = { [weak self] in self?.showHiderBlocked() }
         // 시작할 때는 바로 접고, 설정에서 새로 켰을 때는 펼친 채로 두어 아이콘을 옮길 수 있게 한다.
@@ -105,12 +108,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showHiderBlocked() {
         let alert = NSAlert()
         alert.messageText = L("Peeky 아이콘이 구분선 왼쪽에 있어요")
-        alert.informativeText = L("이대로 숨기면 Peeky 아이콘도 사라져서 펼쳐 두었어요. ⌘를 누른 채 Peeky 아이콘을 구분선 오른쪽으로 옮긴 뒤 › 버튼을 다시 눌러 주세요.")
+        alert.informativeText = L("이대로 숨기면 Peeky 아이콘도 사라져서 펼쳐 두었어요. Peeky 아이콘을 오른쪽 끝으로 옮긴 뒤 › 버튼을 다시 눌러 주세요.")
+        alert.addButton(withTitle: L("Peeky 아이콘을 오른쪽 끝으로 옮기기"))
+        alert.addButton(withTitle: L("닫기"))
         NSApp.activate(ignoringOtherApps: true)
-        alert.runModal()
+        if alert.runModal() == .alertFirstButtonReturn { resetIconPositions() }
     }
 
     // MARK: Groups → status items & hot keys
+
+    /// 아이콘을 지웠다가 처음 자리로 다시 만든다. 노치 뒤나 구분선 왼쪽에 들어가 못 찾을 때 쓴다.
+    private func resetIconPositions() {
+        let hiding = prefs.hideInMenuBar
+        hider.setEnabled(false)
+        for item in statusItems.values { NSStatusBar.system.removeStatusItem(item) }
+        statusItems.removeAll()
+        DispatchQueue.main.async { [self] in
+            for (index, group) in prefs.groups.enumerated() {
+                StatusItemPlacement.prepare(autosaveName: "PeekyGroup-\(group.id.uuidString)",
+                                            position: StatusItemPlacement.groupPosition(index: index), force: true)
+            }
+            StatusItemPlacement.prepare(autosaveName: MenuBarHider.toggleAutosaveName,
+                                        position: StatusItemPlacement.togglePosition, force: true)
+            StatusItemPlacement.prepare(autosaveName: MenuBarHider.autosaveName,
+                                        position: StatusItemPlacement.dividerPosition, force: true)
+            syncGroups(prefs.groups)
+            if hiding { hider.setEnabled(true, collapseNow: false) }
+            ItemStore.log("status icons reset, hidden=\(StatusIconCheck.hiddenGroupNames())")
+        }
+    }
 
     private func syncGroups(_ groups: [ItemGroup]) {
         let ids = Set(groups.map(\.id))

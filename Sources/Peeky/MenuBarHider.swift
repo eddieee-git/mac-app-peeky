@@ -166,10 +166,11 @@ enum StatusItemPlacement {
     static let dividerPosition: Double = 400
     static let togglePosition: Double = 380
 
-    static func prepare(autosaveName: String, position: Double) {
+    /// `force`면 사용자가 옮긴 자리도 덮어쓴다(「아이콘 자리 되돌리기」에서만).
+    static func prepare(autosaveName: String, position: Double, force: Bool = false) {
         let key = "NSStatusItem Preferred Position \(autosaveName)"
         let defaults = UserDefaults.standard
-        if defaults.object(forKey: key) == nil { defaults.set(position, forKey: key) }
+        if force || defaults.object(forKey: key) == nil { defaults.set(position, forKey: key) }
     }
 
     /// 그룹 아이콘 자리: 구분선보다 오른쪽, 그룹 순서대로.
@@ -218,6 +219,8 @@ final class HoverWatcher {
 enum StatusIconCheck {
     /// AppDelegate가 채운다: (그룹 이름, 상태 아이콘)
     static var groupItems: () -> [(name: String, item: NSStatusItem)] = { [] }
+    /// Peeky 아이콘·구분선·‹› 버튼을 처음 자리(오른쪽 끝 가까이, 그룹 → ‹› → 구분선 순)로 되돌린다.
+    static var resetPositions: () -> Void = {}
 
     static func hiddenGroupNames() -> [String] {
         groupItems().filter { isHidden($0.item) }.map(\.name)

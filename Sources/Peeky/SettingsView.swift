@@ -55,6 +55,7 @@ struct SettingsView: View {
                  ? L("노치에 가려졌거나 메뉴바에 자리가 없어요. ⌘를 누른 채 다른 아이콘을 왼쪽으로 옮겨 자리를 만들고, Peeky 아이콘은 오른쪽 끝으로 옮겨 두세요. 그래도 안 보이면 시스템 설정 → 메뉴 막대에서 Peeky가 켜져 있는지 확인하세요.")
                  : L("노치에 가려졌거나 메뉴바에 자리가 없어요. 단축키 %@1로 바를 열 수 있어요. ⌘를 누른 채 다른 아이콘을 왼쪽으로 옮겨 자리를 만들고, Peeky 아이콘은 오른쪽 끝으로 옮겨 두세요. 그래도 안 보이면 시스템 설정 → 메뉴 막대에서 Peeky가 켜져 있는지 확인하세요.", prefs.hotKeyModifiers.symbol))
                 .font(.callout).foregroundStyle(.secondary)
+            Button(L("Peeky 아이콘을 오른쪽 끝으로 옮기기")) { StatusIconCheck.resetPositions() }
         }
     }
 
@@ -122,10 +123,13 @@ struct SettingsView: View {
     private var menuBarSection: some View {
         Section {
             Toggle(L("메뉴바에서 항목 숨기기"), isOn: $prefs.hideInMenuBar)
+            LabeledContent(L("Peeky 아이콘이 안 보이면")) {
+                Button(L("Peeky 아이콘을 오른쪽 끝으로 옮기기")) { StatusIconCheck.resetPositions() }
+            }
         } header: {
             Text(L("메뉴바 정리"))
         } footer: {
-            Text(L("켜면 메뉴바에 구분선(╱)이 생겨요. ⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. 구분선 왼쪽 항목은 메뉴바에서 사라지고 Peeky 바에서만 보여요. Peeky 아이콘은 구분선 오른쪽에 두세요. 구분선을 누르면 펼치거나 접어요."))
+            Text(L("켜면 메뉴바에 구분선(╱)이 생겨요. ⌘를 누른 채 숨길 아이콘을 구분선 왼쪽으로 끌어다 놓으세요. 구분선 왼쪽 항목은 메뉴바에서 사라지고 Peeky 바에서만 보여요. Peeky 아이콘은 구분선 오른쪽에 두세요. 구분선 오른쪽의 › 버튼으로 숨기고 ‹ 버튼으로 다시 펼쳐요."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
