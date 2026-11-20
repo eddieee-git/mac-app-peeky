@@ -2,6 +2,12 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.3.4 (2026-11-20)
+
+- Getting-started steps in settings, “Move to the right end” for Show icons, keyboard selection in the bar
+- Clearer names for Input Source and Karabiner; generic names fall back to the app name
+- Hidden icons hide again as soon as their menu closes; faster arranging with multi-display care; fewer background checks
+
 ## 0.3.3 (2026-11-20)
 
 - Safer arranging: skipped while the menu bar is hidden, paused when you use the mouse, stops and warns if an icon disappears

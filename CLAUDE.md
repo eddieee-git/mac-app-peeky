@@ -78,10 +78,22 @@ dmg 안 앱 이름은 `Peeky.app`, 번들 ID와 버전은 태그와 맞아야 �
 
 - macOS 26에서는 메뉴바 항목 창이 모두 Control Center 소유로 보인다. 어느 앱의 항목인지는 창 목록이 아니라 앱별 `AXExtrasMenuBar`로 알아낸다.
 - 항목 id는 `번들ID|식별자`(식별자 → 설명 → 도움말 → 제목 순). 제목은 시계처럼 계속 바뀔 수 있어 마지막에 쓴다.
+  모든 이름은 **첫 줄만** 쓴다(`firstLine`): Cloudflare One처럼 도움말 뒤에 연결 상태를 덧붙이는 앱이 있다.
+  입력 소스(`com.apple.TextInputMenuAgent`)는 설명이 지금 입력기 이름이라 `#순번`을 키로 쓴다.
+- macOS 26 제어 센터에는 크기 0, 이름 없는 빈 자리 항목이 여럿 있어 건너뛴다.
+- **보이기 / 숨기기**: `Preferences.group(for:)`가 nil이면 「보이기」, 그룹이면 「숨기기 · 그룹」. 고르지 않은 새 아이콘은
+  「보이기」(`newIconsVisible`). 0.3.2 이전 설정은 첫 전체 스캔 때 지금 아이콘을 첫 그룹으로 옮겨 적는다(`adoptVisibleDefault`).
+- 시계·제어 센터(`MenuBarItem.isFixed`)는 macOS가 옮기지 못하게 한다. 바에 넣지 않고 정리에서도 건너뛴다.
+- **자동 정리**(`AppDelegate.arrangeMenuBar`)는 `ItemMover`로 ⌘ 끌기를 흉내 내 마우스를 실제로 움직인다. 지킬 것:
+  메뉴바가 안 보이면(`MenuBarHider.menuBarIsVisible`) 하지 않는다, 마우스를 누르거나 움직이면 멈추고 다시 한다,
+  옮긴 아이콘이 사라지면 멈추고 알린다, 노치 뒤라 잡을 수 없는 아이콘은 `unmovableIDs`로 표시한다.
+  ⌘ 끌기를 메뉴바 밖에서 놓으면 그 앱의 아이콘이 지워지므로 놓는 자리는 항상 메뉴바 안이어야 한다.
 - 상태 아이콘에 `AXPress`를 하면 메뉴가 닫힐 때까지 돌아오지 않을 수 있어 메인 스레드 밖에서 부른다.
 - `NSScreen`은 메인 스레드에서만 쓴다. 노치 판정은 백그라운드로 넘기기 전에 해 둔다.
 - 설정 추가: `@Published var x { didSet { defaults.set(...) } }`, `init`에서 `defaults.object(forKey:) as? … ?? 기본값`.
 - **번역**: 사용자 문구는 `L("한국어")`로 쓰고 `Localization.pairs`에 영어를 더한다. 같은 키가 두 번 들어가면 자체 점검이 실패한다.
-- **구분선 숨기기**: 구분선 길이를 10,000pt로 늘려 왼쪽 항목을 화면 밖으로 민다. 앱이 끝날 때는 펼쳐 둔다(`applicationWillTerminate`).
+- **구분선 숨기기**: 투명한 구분선(펼쳤을 때 1pt) 길이를 10,000pt로 늘려 왼쪽 항목을 화면 밖으로 민다. 사용자에게는 그 오른쪽의
+  ‹ › 버튼만 보인다. 앱이 끝날 때는 펼쳐 둔다(`applicationWillTerminate`). 숨긴 아이콘을 바에서 누르면 잠깐 펼치고,
+  메뉴 창(`popUpMenuWindow` 층)이 닫히면 바로 다시 접는다.
 - **새 상태 아이콘 자리**: `NSStatusItem Preferred Position <autosaveName>`을 처음 한 번만 넣는다. 사용자가 옮긴 값은 건드리지 않는다.
 - **권한 확인 로그**는 설정 → 고급 → 진단 로그를 켜야 남는다(`defaults write com.eddieee.Peeky diagnosticLog -bool true`).

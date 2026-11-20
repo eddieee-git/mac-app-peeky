@@ -2,6 +2,12 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.3.4 (2026-11-20)
+
+- 설정 맨 위 시작하기 세 단계, 「보이기」 아이콘 맨 오른쪽으로 옮기기, 바에서 키보드로 고르기
+- 입력 소스·Karabiner 이름 정리, 뜻 없는 이름은 앱 이름으로
+- 숨긴 아이콘의 메뉴가 닫히면 바로 숨기기, 자동 정리 빠르게·화면 여러 개 대비, 설정 창 확인 줄이기
+
 ## 0.3.3 (2026-11-20)
 
 - 자동 정리 안전장치: 메뉴바가 안 보이면 하지 않고, 마우스를 쓰면 멈췄다 다시, 아이콘이 사라지면 멈추고 알림
