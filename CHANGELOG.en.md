@@ -2,6 +2,12 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.3.3 (2026-11-20)
+
+- Safer arranging: skipped while the menu bar is hidden, paused when you use the mouse, stops and warns if an icon disappears
+- New icons default to “Show”; icons that couldn't be moved are labeled “Couldn't move”
+- Settings button removed from the Peeky bar (except when empty); bar tooltips use the same labels as settings
+
 ## 0.3.2 (2026-11-20)
 
 - The clock and Control Center are left out of Peeky bars (and group counts and “Hide all”)

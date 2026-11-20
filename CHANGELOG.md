@@ -2,6 +2,12 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.3.3 (2026-11-20)
+
+- 자동 정리 안전장치: 메뉴바가 안 보이면 하지 않고, 마우스를 쓰면 멈췄다 다시, 아이콘이 사라지면 멈추고 알림
+- 새 아이콘은 「보이기」, 옮기지 못한 아이콘에 「옮기지 못함」 표시
+- Peeky 바에서 설정 버튼 빼기(빈 바일 때만), 바 마우스 설명을 설정과 같은 말로
+
 ## 0.3.2 (2026-11-20)
 
 - 시계·제어 센터를 Peeky 바에서 빼기(그룹 개수·「모두 숨기기」 포함)
