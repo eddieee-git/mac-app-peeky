@@ -9,7 +9,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItems: [UUID: NSStatusItem] = [:]
     private var taskbar: TaskbarController!
     private let hider = MenuBarHider()
-    private var hover: HoverWatcher!
     private var settingsWindow: NSWindow?
     private var hotKeys: [HotKey] = []
     private var refreshWork: DispatchWorkItem?
@@ -22,10 +21,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         taskbar = TaskbarController(hider: hider, openSettings: { [weak self] in self?.showSettings() })
-        hover = HoverWatcher { [weak self] in
-            guard let self, let first = self.prefs.groups.first, !self.taskbar.isVisible else { return }
-            self.toggleBar(group: first.id)
-        }
 
         // @Published emits the new value before it is stored, so pass it along explicitly.
         prefs.$groups
@@ -70,9 +65,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self, self.prefs.hideInMenuBar else { return }
                 self.arrangeMenuBar(collapseAfter: false)
             }
-            .store(in: &cancellables)
-        prefs.$hoverToOpen
-            .sink { [weak self] enabled in self?.hover.setEnabled(enabled) }
             .store(in: &cancellables)
         prefs.$diagnosticLog
             .dropFirst()

@@ -59,11 +59,12 @@ dmg 안 앱 이름은 `Peeky.app`, 번들 ID와 버전은 태그와 맞아야 �
 | 파일 | 하는 일 |
 |---|---|
 | `main.swift` | 시작점. `--self-test`면 점검만 돌리고 끝냄 |
-| `AppDelegate.swift` | 그룹마다 상태 아이콘, 단축키(보조 키 선택), 오른쪽 클릭 메뉴, 구분선·노치 호버 켜고 끄기, 앱 실행/종료 감지 |
+| `AppDelegate.swift` | 그룹마다 상태 아이콘, 단축키(보조 키 선택), 오른쪽 클릭 메뉴, 메뉴바 숨기기 켜고 끄기, 보이기/숨기기에 맞게 아이콘 정리(`arrangeMenuBar`), 앱 실행/종료 감지 |
 | `ItemStore.swift` | 손쉬운 사용(`AXExtrasMenuBar`)으로 메뉴바 항목 수집(빠른 새로고침은 아는 앱만), 바뀐 아이콘만 캡처, 진단 로그 |
 | `SystemItemNames.swift` | 이름 없는 macOS 기본 항목에 이름 붙이기(낱말 표, 구체적인 낱말이 앞) |
 | `Taskbar.swift` | 바 패널. 그룹별 줄 수, 화살표·휠·키보드 스크롤, 끌어서 순서 바꾸기, 항목 클릭(숨긴 항목은 펼친 뒤 AXPress) |
-| `MenuBarHider.swift` | 구분선으로 메뉴바에서 숨기기, 새 아이콘 처음 자리(`StatusItemPlacement`), 노치 호버(`HoverWatcher`) |
+| `MenuBarHider.swift` | 투명한 구분선과 ‹ › 버튼으로 메뉴바에서 숨기기, 새 아이콘 처음 자리(`StatusItemPlacement`), 아이콘 가려짐 확인(`StatusIconCheck`) |
+| `ItemMover.swift` | ⌘ 끌기를 흉내 내 다른 앱 아이콘 옮기기 |
 | `NotchGeometry.swift` | 노치 위치(`notchRect`), 항목이 가려졌는지·화면 밖인지 |
 | `Preferences.swift` | 설정(UserDefaults): 그룹(그룹별 옵션), 항목별 그룹, 숨김, 순서, 표시, 단축키, 진단 로그 |
 | `SettingsView.swift` | 설정 창(SwiftUI) |

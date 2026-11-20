@@ -23,9 +23,7 @@
 - **Groups**: each group gets its own icon in the menu bar and shows only the items you put in it — e.g. "Work" and "System". Rows and what to show can be set per group.
 - **Really hide from the menu bar**: just choose “Show” or “Hide” for each icon and Peeky rearranges the menu bar for you. Hidden icons are clicked from the Peeky bar.
 - **Drag to reorder**: drag icons inside the bar into any order.
-- **Hover over the notch**: optionally open the bar just by resting the pointer on the notch.
 - **Real icon images**: with Screen Recording permission, items look exactly as they do in the menu bar (otherwise the app icon is shown).
-- **Only what the notch hides**: optionally list just the items that are hidden right now.
 - **Readable names**: built-in macOS items without a name get one — Battery, Wi-Fi, Sound and so on.
 - **In-app updates**: tells you about new versions, checks the signature, and swaps them in.
 - **English and Korean**: follows your Mac's language at first; change it in Settings.
@@ -77,9 +75,7 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 
 | Setting | Description |
 |---|---|
-| Only items hidden by the notch | Shows only items currently under the notch or pushed off-screen (per group too) |
 | Rows | One / two / three (per group too) |
-| Open the bar when hovering over the notch | Notched displays only (off by default) |
 | Shortcut | ⌃⌥ / ⌃⌘ / ⌥⌘ / ⌃⇧ / off |
 | Hide “Hide” icons from the menu bar | Moves icons as you chose and hides the “Hide” ones from the menu bar (off by default) |
 | Max bar width | Beyond this width, use arrows and scrolling |
@@ -104,7 +100,7 @@ Only one request to GitHub's public API asking for the latest release when check
 Click the **‹** button in the menu bar, or right-click a Peeky icon → **Show Hidden Icons**. Turning off **Hide “Hide” icons from the menu bar** in settings → General removes the › button and brings everything back. Quitting Peeky also unfolds them.
 
 **Does it work on Macs without a notch?**
-Yes — it's still useful for grouping menu bar icons. "Only items hidden by the notch" only matters on a notched display.
+Yes — it's still useful for grouping menu bar icons.
 
 ## Uninstall
 

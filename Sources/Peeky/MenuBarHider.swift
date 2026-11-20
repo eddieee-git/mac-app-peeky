@@ -185,42 +185,6 @@ enum StatusItemPlacement {
     static func groupPosition(index: Int) -> Double { 200 + Double(index) * 30 }
 }
 
-/// 노치에 마우스를 잠깐 올리면 바를 연다.
-@MainActor
-final class HoverWatcher {
-    private var timer: Timer?
-    private var enteredAt: Date?
-    private var firedThisVisit = false
-    private let action: () -> Void
-    private static let dwell: TimeInterval = 0.35
-
-    init(action: @escaping () -> Void) { self.action = action }
-
-    func setEnabled(_ enabled: Bool) {
-        timer?.invalidate()
-        timer = nil
-        guard enabled else { return }
-        timer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { _ in
-            Task { @MainActor [weak self] in self?.tick() }
-        }
-    }
-
-    private func tick() {
-        guard let rect = NotchGeometry.notchRect else { return }
-        let inside = rect.insetBy(dx: -4, dy: -2).contains(NSEvent.mouseLocation)
-        guard inside else {
-            enteredAt = nil
-            firedThisVisit = false
-            return
-        }
-        if enteredAt == nil { enteredAt = Date() }
-        if !firedThisVisit, let enteredAt, Date().timeIntervalSince(enteredAt) >= Self.dwell {
-            firedThisVisit = true
-            action()
-        }
-    }
-}
-
 /// Peeky 자신의 그룹 아이콘이 메뉴바에서 보이는지 확인한다. 노치 뒤에 있거나, 자리가 없어
 /// macOS가 화면 밖으로 밀어냈거나, 시스템 설정에서 꺼져 창이 없으면 안 보이는 것으로 본다.
 @MainActor

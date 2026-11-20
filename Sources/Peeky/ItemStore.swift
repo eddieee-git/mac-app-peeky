@@ -55,8 +55,7 @@ final class ItemStore: ObservableObject {
     func barItems(in group: UUID?) -> [MenuBarItem] {
         guard let group else { return [] }
         let prefs = Preferences.shared
-        let notchOnly = prefs.onlyNotchHidden(for: group)
-        let list = items.filter { prefs.group(for: $0.id) == group && (!notchOnly || $0.isHiddenByNotch) }
+        let list = items.filter { prefs.group(for: $0.id) == group }
         return prefs.ordered(list) { $0.id }
     }
 

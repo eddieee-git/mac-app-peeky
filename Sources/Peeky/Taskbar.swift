@@ -323,8 +323,7 @@ final class TaskbarController: NSObject {
         strip.frame = NSRect(x: 0, y: 0, width: contentWidth, height: stripHeight)
 
         let emptyText: String? = !AX.isTrusted ? L("손쉬운 사용 권한이 필요해요 — ⚙︎ 눌러 설정")
-            : items.isEmpty ? (prefs.onlyNotchHidden(for: groupID) ? L("노치에 가려진 항목이 없어요")
-                                                                  : L("이 그룹에 항목이 없어요 — ⚙︎에서 추가")) : nil
+            : items.isEmpty ? L("숨긴 아이콘이 없어요 — ⚙︎에서 「숨기기」를 고르세요") : nil
         emptyLabel.stringValue = emptyText ?? ""
         emptyLabel.isHidden = emptyText == nil
         emptyLabel.sizeToFit()

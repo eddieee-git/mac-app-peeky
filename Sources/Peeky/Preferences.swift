@@ -9,7 +9,6 @@ struct ItemGroup: Codable, Identifiable, Hashable {
     var symbol: String
     /// nil이면 전체 설정을 따른다.
     var rowCount: Int?
-    var onlyNotchHidden: Bool?
 
     static let symbols = [
         "chevron.left.chevron.right", "square.grid.2x2", "star", "bolt", "wrench.and.screwdriver",
@@ -71,11 +70,6 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(itemOrder, forKey: "itemOrder") }
     }
 
-    /// When on, the bar lists only items the notch is currently hiding (groups can override).
-    @Published var onlyNotchHidden: Bool {
-        didSet { defaults.set(onlyNotchHidden, forKey: "onlyNotchHidden") }
-    }
-
     /// Maximum width (points) of the scrollable strip before arrows/scrolling kick in.
     @Published var maxStripWidth: Double {
         didSet { defaults.set(maxStripWidth, forKey: "maxStripWidth") }
@@ -89,11 +83,6 @@ final class Preferences: ObservableObject {
     /// 구분선 왼쪽에 둔 항목을 메뉴바에서 실제로 숨긴다.
     @Published var hideInMenuBar: Bool {
         didSet { defaults.set(hideInMenuBar, forKey: "hideInMenuBar") }
-    }
-
-    /// 노치에 마우스를 잠깐 올리면 첫 그룹의 바를 연다.
-    @Published var hoverToOpen: Bool {
-        didSet { defaults.set(hoverToOpen, forKey: "hoverToOpen") }
     }
 
     @Published var hotKeyModifiers: HotKeyModifiers {
@@ -131,11 +120,9 @@ final class Preferences: ObservableObject {
             .flatMap { try? JSONDecoder().decode([String: UUID].self, from: $0) } ?? [:]
         excludedIDs = Set(defaults.stringArray(forKey: "excludedIDs") ?? [])
         itemOrder = defaults.stringArray(forKey: "itemOrder") ?? []
-        onlyNotchHidden = defaults.object(forKey: "onlyNotchHidden") as? Bool ?? false
         maxStripWidth = defaults.object(forKey: "maxStripWidth") as? Double ?? 320
         rowCount = min(3, max(1, defaults.object(forKey: "rowCount") as? Int ?? 1))
         hideInMenuBar = defaults.object(forKey: "hideInMenuBar") as? Bool ?? false
-        hoverToOpen = defaults.object(forKey: "hoverToOpen") as? Bool ?? false
         hotKeyModifiers = HotKeyModifiers(rawValue: defaults.object(forKey: "hotKeyModifiers") as? Int ?? 0) ?? .controlOption
         diagnosticLog = defaults.object(forKey: "diagnosticLog") as? Bool ?? false
     }
@@ -182,10 +169,6 @@ final class Preferences: ObservableObject {
 
     func rowCount(for group: UUID?) -> Int {
         min(3, max(1, groups.first { $0.id == group }?.rowCount ?? rowCount))
-    }
-
-    func onlyNotchHidden(for group: UUID?) -> Bool {
-        groups.first { $0.id == group }?.onlyNotchHidden ?? onlyNotchHidden
     }
 
     // MARK: Order

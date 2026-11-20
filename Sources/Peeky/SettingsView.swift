@@ -90,8 +90,7 @@ struct SettingsView: View {
     }
 
     private var barSection: some View {
-        Section(L("바 표시")) {
-            Toggle(L("노치에 가려진 항목만 표시"), isOn: $prefs.onlyNotchHidden)
+        Section(L("Peeky 바 모양")) {
             Picker(L("줄 수"), selection: $prefs.rowCount) {
                 Text(L("한 줄")).tag(1)
                 Text(L("두 줄")).tag(2)
@@ -105,9 +104,6 @@ struct SettingsView: View {
                     Text("\(Int(prefs.maxStripWidth))pt").monospacedDigit().foregroundStyle(.secondary)
                 }
             }
-            Toggle(L("노치에 마우스를 올리면 첫 그룹 바 열기"), isOn: $prefs.hoverToOpen)
-                .disabled(NotchGeometry.notchScreen == nil && !prefs.hoverToOpen)
-                .help(NotchGeometry.notchScreen == nil ? L("노치가 있는 화면에서만 동작해요") : "")
             Picker(L("단축키"), selection: $prefs.hotKeyModifiers) {
                 ForEach(HotKeyModifiers.allCases) { Text($0.title).tag($0) }
             }
@@ -304,12 +300,6 @@ struct SettingsView: View {
                 Text(L("한 줄")).tag(1)
                 Text(L("두 줄")).tag(2)
                 Text(L("세 줄")).tag(3)
-            }
-            Picker(L("표시할 항목"), selection: Binding(get: { group.onlyNotchHidden.map { $0 ? 1 : 2 } ?? 0 },
-                                                   set: { value in editGroup(group.id) { $0.onlyNotchHidden = value == 0 ? nil : value == 1 } })) {
-                Text(L("전체 설정 따르기")).tag(0)
-                Text(L("노치에 가려진 항목만")).tag(1)
-                Text(L("그룹의 모든 항목")).tag(2)
             }
         } label: {
             Image(systemName: "ellipsis.circle")
