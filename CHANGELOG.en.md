@@ -2,6 +2,11 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.2.5 (2026-11-20)
+
+- “Move Peeky icons to the right end” in Settings → Menu bar cleanup: puts the group icons, divider and ‹ › button back in place
+- The same fix from the hidden-icon notice and the blocked-hiding alert, plus a `--reset-icons` launch option
+
 ## 0.2.4 (2026-11-20)
 
 - The settings window warns at the top when the Peeky icon is behind the notch or has no room in the menu bar

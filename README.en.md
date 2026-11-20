@@ -90,7 +90,7 @@ The modifiers (⌃⌥) can be changed to ⌃⌘, ⌥⌘ or ⌃⇧, or turned off
 ## FAQ
 
 **I can't see the Peeky icon in the menu bar.**
-It's behind the notch or there's no room for it. Open Peeky again from Applications: the settings window opens with a notice at the top. **⌃⌥1** opens the bar; hold ⌘ and drag other icons left to make room, then move the Peeky icon to the right end. On macOS 26, also check that Peeky is allowed in System Settings → Menu Bar.
+It's behind the notch or there's no room for it. Open Peeky again from Applications: the settings window opens with a notice at the top. **⌃⌥1** opens the bar; hold ⌘ and drag other icons left to make room, then move the Peeky icon to the right end. **Move Peeky icons to the right end** in Settings → Menu bar cleanup puts them back in place. On macOS 26, also check that Peeky is allowed in System Settings → Menu Bar.
 
 **I turned the permission on but settings still shows orange.**
 The Peeky entry in the list may belong to an older build. Remove it with − and click Allow again (turn on **Keep a diagnostic log** under Advanced to see what Peeky detects), or reset with `tccutil reset Accessibility com.eddieee.Peeky` (`ScreenCapture` for Screen Recording). Screen Recording takes effect after **Reopen**.

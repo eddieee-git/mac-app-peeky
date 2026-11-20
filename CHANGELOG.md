@@ -2,6 +2,11 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.2.5 (2026-11-20)
+
+- 설정 → 메뉴바 정리에 「Peeky 아이콘을 오른쪽 끝으로 옮기기」: 그룹 아이콘·구분선·‹ › 버튼을 처음 자리로
+- 아이콘 가려짐 안내와 숨기기 막힘 안내 창에서 바로 옮기기, `--reset-icons` 실행 옵션
+
 ## 0.2.4 (2026-11-20)
 
 - Peeky 아이콘이 노치에 가려졌거나 메뉴바에 자리가 없으면 설정 창 맨 위에 안내
