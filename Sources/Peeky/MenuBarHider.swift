@@ -211,3 +211,20 @@ final class HoverWatcher {
         }
     }
 }
+
+/// Peeky 자신의 그룹 아이콘이 메뉴바에서 보이는지 확인한다. 노치 뒤에 있거나, 자리가 없어
+/// macOS가 화면 밖으로 밀어냈거나, 시스템 설정에서 꺼져 창이 없으면 안 보이는 것으로 본다.
+@MainActor
+enum StatusIconCheck {
+    /// AppDelegate가 채운다: (그룹 이름, 상태 아이콘)
+    static var groupItems: () -> [(name: String, item: NSStatusItem)] = { [] }
+
+    static func hiddenGroupNames() -> [String] {
+        groupItems().filter { isHidden($0.item) }.map(\.name)
+    }
+
+    static func isHidden(_ item: NSStatusItem) -> Bool {
+        guard let window = item.button?.window, window.isVisible, window.frame.width > 0 else { return true }
+        return NotchGeometry.isHidden(window.frame)
+    }
+}

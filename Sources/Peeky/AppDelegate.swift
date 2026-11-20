@@ -38,6 +38,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
         hider.protectedItems = { [weak self] in self.map { Array($0.statusItems.values) } ?? [] }
+        StatusIconCheck.groupItems = { [weak self] in
+            guard let self else { return [] }
+            return self.prefs.groups.compactMap { group in self.statusItems[group.id].map { (group.name, $0) } }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            ItemStore.log("status icons hidden=\(StatusIconCheck.hiddenGroupNames())")
+        }
         hider.onBlocked = { [weak self] in self?.showHiderBlocked() }
         // 시작할 때는 바로 접고, 설정에서 새로 켰을 때는 펼친 채로 두어 아이콘을 옮길 수 있게 한다.
         hider.setEnabled(prefs.hideInMenuBar)

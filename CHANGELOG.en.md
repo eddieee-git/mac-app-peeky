@@ -2,6 +2,10 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.2.4 (2026-11-20)
+
+- The settings window warns at the top when the Peeky icon is behind the notch or has no room in the menu bar
+
 ## 0.2.3 (2026-11-19)
 
 - The settings (⚙) button in the bar sits in the last slot after the icons

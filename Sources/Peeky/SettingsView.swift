@@ -6,6 +6,8 @@ struct SettingsView: View {
     @ObservedObject private var updater = AppUpdater.shared
     @State private var axTrusted = AX.isTrusted
     @State private var search = ""
+    /// 메뉴바에서 안 보이는 Peeky 그룹 아이콘 이름들.
+    @State private var hiddenIcons: [String] = []
     /// "system" | "ko" | "en". 문구는 시작할 때 한 번 정해지므로 바꾸면 다시 열어야 한다.
     @State private var language = UserDefaults.standard.string(forKey: "language") ?? "system"
     private let launchLanguage = UserDefaults.standard.string(forKey: "language") ?? "system"
@@ -14,6 +16,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            if !hiddenIcons.isEmpty { hiddenIconSection }
             permissionsSection
             barSection
             menuBarSection
@@ -26,8 +29,13 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .searchable(text: $search, placement: .toolbar, prompt: L("항목 검색"))
         .frame(minWidth: 500, minHeight: 560)
-        .onAppear { store.refresh(full: true) }
+        .onAppear {
+            store.refresh(full: true)
+            hiddenIcons = StatusIconCheck.hiddenGroupNames()
+        }
         .onReceive(poll) { _ in
+            let hidden = StatusIconCheck.hiddenGroupNames()
+            if hidden != hiddenIcons { hiddenIcons = hidden }
             let nowTrusted = AX.isTrusted
             if nowTrusted != axTrusted {
                 axTrusted = nowTrusted
@@ -37,6 +45,18 @@ struct SettingsView: View {
     }
 
     // MARK: Sections
+
+    private var hiddenIconSection: some View {
+        Section {
+            Label(L("Peeky 아이콘이 메뉴바에서 안 보여요 (%@)", hiddenIcons.joined(separator: ", ")),
+                  systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text(prefs.hotKeyModifiers == .off
+                 ? L("노치에 가려졌거나 메뉴바에 자리가 없어요. ⌘를 누른 채 다른 아이콘을 왼쪽으로 옮겨 자리를 만들고, Peeky 아이콘은 오른쪽 끝으로 옮겨 두세요. 그래도 안 보이면 시스템 설정 → 메뉴 막대에서 Peeky가 켜져 있는지 확인하세요.")
+                 : L("노치에 가려졌거나 메뉴바에 자리가 없어요. 단축키 %@1로 바를 열 수 있어요. ⌘를 누른 채 다른 아이콘을 왼쪽으로 옮겨 자리를 만들고, Peeky 아이콘은 오른쪽 끝으로 옮겨 두세요. 그래도 안 보이면 시스템 설정 → 메뉴 막대에서 Peeky가 켜져 있는지 확인하세요.", prefs.hotKeyModifiers.symbol))
+                .font(.callout).foregroundStyle(.secondary)
+        }
+    }
 
     private var permissionsSection: some View {
         Section(L("권한")) {

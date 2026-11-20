@@ -2,6 +2,10 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.2.4 (2026-11-20)
+
+- Peeky 아이콘이 노치에 가려졌거나 메뉴바에 자리가 없으면 설정 창 맨 위에 안내
+
 ## 0.2.3 (2026-11-19)
 
 - 바의 설정(⚙) 버튼을 아이콘 맨 뒤 칸에
