@@ -2,6 +2,15 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.3.0 (2026-11-20)
+
+- Choose “Show / Hide (· group)” per icon and Peeky moves menu bar icons into place like a ⌘-drag
+- Only a ‹ › button in the menu bar: icons to its right always show, icons to its left are hidden
+- Labels for why an icon isn't visible (behind notch / hidden / no room / always shown)
+- Settings split into General and Advanced tabs; a shorter right-click menu
+- Removed “Only items hidden by the notch” and notch hover; “Bar” renamed “Peeky bar”
+- Apps that append a status to their name (such as Cloudflare One) and the input source icon are recognized consistently
+
 ## 0.2.6 (2026-11-20)
 
 - Right-clicking the ‹ › button or the divider opens the menu (open groups, show/hide, settings, quit)
