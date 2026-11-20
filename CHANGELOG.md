@@ -2,6 +2,10 @@
 
 버전마다 자세한 내용은 [docs/releases](docs/releases)와 [GitHub 릴리스](https://github.com/eddieee-git/mac-app-peeky/releases)에 있어요. English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 0.2.6 (2026-11-20)
+
+- ‹ › 버튼과 구분선도 오른쪽 클릭하면 메뉴(그룹 열기, 펼치기/숨기기, 설정, 종료)
+
 ## 0.2.5 (2026-11-20)
 
 - 설정 → 메뉴바 정리에 「Peeky 아이콘을 오른쪽 끝으로 옮기기」: 그룹 아이콘·구분선·‹ › 버튼을 처음 자리로

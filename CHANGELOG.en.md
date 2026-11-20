@@ -2,6 +2,10 @@
 
 Details for each version are in [docs/releases](docs/releases) and [GitHub Releases](https://github.com/eddieee-git/mac-app-peeky/releases). 한국어: [CHANGELOG.md](CHANGELOG.md)
 
+## 0.2.6 (2026-11-20)
+
+- Right-clicking the ‹ › button or the divider opens the menu (open groups, show/hide, settings, quit)
+
 ## 0.2.5 (2026-11-20)
 
 - “Move Peeky icons to the right end” in Settings → Menu bar cleanup: puts the group icons, divider and ‹ › button back in place
