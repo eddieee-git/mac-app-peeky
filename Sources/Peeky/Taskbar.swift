@@ -373,8 +373,14 @@ final class TaskbarController: NSObject {
             width = size.width + 4
         } else {
             let icon = (item.appIcon?.copy() as? NSImage) ?? NSImage(systemSymbolName: "app", accessibilityDescription: nil)!
-            icon.size = NSSize(width: Metrics.fallbackIconSize, height: Metrics.fallbackIconSize)
-            button.image = icon
+            if icon.isTemplate {
+                // macOS 기본 항목의 기호: 비율을 지키고 메뉴바 글자색으로.
+                button.image = icon.withSymbolConfiguration(.init(pointSize: 14, weight: .regular)) ?? icon
+                button.contentTintColor = .labelColor
+            } else {
+                icon.size = NSSize(width: Metrics.fallbackIconSize, height: Metrics.fallbackIconSize)
+                button.image = icon
+            }
             width = Metrics.fallbackIconSize + 12
         }
         button.frame.size = NSSize(width: width, height: Metrics.itemHeight)

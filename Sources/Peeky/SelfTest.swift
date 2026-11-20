@@ -32,6 +32,12 @@ enum SelfTest {
                                                title: nil, help: nil, appName: "Example", index: 0)
         expect(thirdParty == "Sync", "다른 앱은 설명 그대로")
 
+        print("기본 항목 모양")
+        expect(SystemItemNames.symbol(bundleID: "com.apple.controlcenter", texts: ["com.apple.menuextra.battery"]) == "battery.75percent",
+               "배터리는 배터리 모양")
+        expect(SystemItemNames.symbol(bundleID: "com.apple.controlcenter", texts: [nil, "Wi‑Fi", "Wi-Fi"]) == "wifi", "Wi-Fi 모양")
+        expect(SystemItemNames.symbol(bundleID: "com.example.app", texts: ["battery"]) == nil, "다른 앱은 앱 아이콘 그대로")
+
         print("항목 이름")
         expect(firstLine("Cloudflare One Client\n\nAttention - Disconnected") == "Cloudflare One Client",
                "상태가 덧붙은 도움말은 첫 줄만")

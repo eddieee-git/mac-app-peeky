@@ -375,7 +375,8 @@ struct SettingsView: View {
             Image(nsImage: image).resizable().renderingMode(image.isTemplate ? .template : .original)
                 .aspectRatio(contentMode: .fit)
         } else if let icon = item.appIcon {
-            Image(nsImage: icon).resizable().aspectRatio(contentMode: .fit)
+            Image(nsImage: icon).resizable().renderingMode(icon.isTemplate ? .template : .original)
+                .aspectRatio(contentMode: .fit).padding(icon.isTemplate ? 2 : 0)
         } else {
             Image(systemName: "app")
         }

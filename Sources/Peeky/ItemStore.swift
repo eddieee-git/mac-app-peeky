@@ -149,6 +149,14 @@ final class ItemStore: ObservableObject {
 
     // MARK: - Accessibility scan
 
+    /// 화면 기록이 없을 때 보여 줄 그림. macOS 기본 항목은 모양에 맞는 기호, 나머지는 앱 아이콘.
+    nonisolated private static func fallbackIcon(app: AppInfo, texts: [String?]) -> NSImage? {
+        guard let name = SystemItemNames.symbol(bundleID: app.bundleID, texts: texts),
+              let image = NSImage(systemSymbolName: name, accessibilityDescription: nil) else { return app.icon }
+        image.isTemplate = true
+        return image
+    }
+
     nonisolated private static func scan(_ apps: [AppInfo]) -> [MenuBarItem] {
         var result: [MenuBarItem] = []
         for app in apps {
@@ -190,7 +198,7 @@ final class ItemStore: ObservableObject {
                                           label: label,
                                           element: child,
                                           frame: frame,
-                                          appIcon: app.icon))
+                                          appIcon: Self.fallbackIcon(app: app, texts: [identifier, desc, title, help])))
             }
         }
         // Menu bar order: left → right. Items without a frame go last.
