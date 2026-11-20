@@ -42,7 +42,7 @@
 
 ## Usage
 
-1. Right-click the Peeky icon → **Settings…** → **General** → → **Menu bar icons**, choose for each icon:
+1. Right-click the Peeky icon → **Settings…** → **General** → **Menu bar icons**, choose for each icon:
    - **Show**: leave it in the menu bar.
    - **Hide**: take it out of the menu bar and collect it in the Peeky bar. With two or more groups, pick **Hide · group name** to choose which group's bar it goes in.
 2. Turn on **Hide “Hide” icons from the menu bar** at the top, and Peeky moves the icons into place for you. The pointer moves briefly while it does. Whenever you change a choice, Peeky arranges them again.
